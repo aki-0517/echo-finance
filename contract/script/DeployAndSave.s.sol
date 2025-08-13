@@ -90,38 +90,53 @@ contract DeployAndSaveScript is Script {
         address stablecoin,
         address vaultManager
     ) internal {
-        // Write to contract/.env
-        string memory contractEnv = string.concat(
+        // Write contract env in parts to avoid stack too deep
+        string memory header = string.concat(
             "# Contract Deployment Results\n",
             "PRIVATE_KEY=", vm.envString("PRIVATE_KEY"), "\n",
-            "RPC_URL=", vm.envOr("RPC_URL", string("https://rpc.sonic.test")), "\n\n",
+            "RPC_URL=", vm.envOr("RPC_URL", string("https://rpc.testnet.soniclabs.com")), "\n"
+        );
+        
+        string memory addresses = string.concat(
+            "ETHERSCAN_API_KEY=", vm.envOr("ETHERSCAN_API_KEY", string("")), "\n\n",
             "# Deployed Contract Addresses\n",
             "VAULT_MANAGER_ADDRESS=", vm.toString(vaultManager), "\n",
-            "STABLECOIN_ADDRESS=", vm.toString(stablecoin), "\n",
+            "STABLECOIN_ADDRESS=", vm.toString(stablecoin), "\n"
+        );
+        
+        string memory moreAddresses = string.concat(
             "COLLATERAL_ADAPTER_ADDRESS=", vm.toString(collateralAdapter), "\n",
             "S_TOKEN_ADDRESS=", vm.toString(sToken), "\n",
             "STS_TOKEN_ADDRESS=", vm.toString(stSToken), "\n",
             "PRICE_FEED_ADDRESS=", vm.toString(priceFeed), "\n"
         );
         
-        vm.writeFile("contract/.env", contractEnv);
+        string memory contractEnv = string.concat(header, addresses, moreAddresses);
+        vm.writeFile(".env", contractEnv);
 
-        // Write to web/.env for frontend
-        string memory webEnv = string.concat(
+        // Write web env in parts
+        string memory webHeader = string.concat(
             "# Frontend Configuration\n",
-            "VITE_WALLETCONNECT_PROJECT_ID=", vm.envOr("VITE_WALLETCONNECT_PROJECT_ID", string("YOUR_PROJECT_ID")), "\n\n",
-            "# Contract Addresses\n",
+            "VITE_WALLETCONNECT_PROJECT_ID=", vm.envOr("VITE_WALLETCONNECT_PROJECT_ID", string("your_walletconnect_project_id_here")), "\n\n",
+            "# Contract Addresses\n"
+        );
+        
+        string memory webAddresses = string.concat(
             "VITE_VAULT_MANAGER_ADDRESS=", vm.toString(vaultManager), "\n",
             "VITE_STABLECOIN_ADDRESS=", vm.toString(stablecoin), "\n",
-            "VITE_COLLATERAL_ADAPTER_ADDRESS=", vm.toString(collateralAdapter), "\n",
+            "VITE_COLLATERAL_ADAPTER_ADDRESS=", vm.toString(collateralAdapter), "\n"
+        );
+        
+        string memory webFooter = string.concat(
             "VITE_S_TOKEN_ADDRESS=", vm.toString(sToken), "\n",
             "VITE_STS_TOKEN_ADDRESS=", vm.toString(stSToken), "\n\n",
             "# Network Configuration\n",
-            "VITE_SONIC_TESTNET_RPC=https://rpc.sonic.test\n",
+            "VITE_SONIC_TESTNET_RPC=https://rpc.testnet.soniclabs.com\n",
             "VITE_SONIC_EXPLORER=https://explorer.sonic.test\n"
         );
         
-        vm.writeFile("web/.env", webEnv);
+        string memory webEnv = string.concat(webHeader, webAddresses, webFooter);
+        vm.writeFile("../web/.env", webEnv);
     }
 }
 

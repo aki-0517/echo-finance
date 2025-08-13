@@ -97,9 +97,10 @@ npm test
 ## 🌐 ネットワーク情報
 
 - **Sonic Testnet**
-  - RPC: `https://rpc.sonic.test`
+  - RPC: `https://rpc.testnet.soniclabs.com`
   - Explorer: `https://explorer.sonic.test`
   - Chain ID: `14601`
+  - Faucet: Sonic公式Discordで入手可能
 
 ## 📝 ライセンス
 
