@@ -18,6 +18,22 @@ export default function Dashboard() {
   
   return (
     <div className="space-y-8">
+      {/* Protocol Stats - Top Highlight */}
+      <div className="card bg-gradient-to-r from-brand-highlight/25 to-brand-primary/25 border border-brand-highlight/30">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-brand-gray">Protocol Stats</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+          <div>
+            <p className="text-sm text-brand-gray/70">Total Value Locked</p>
+            <p className="text-3xl sm:text-4xl font-bold text-brand-gray">$2.4M</p>
+          </div>
+          <div>
+            <p className="text-sm text-brand-gray/70">Total eSUSD Minted</p>
+            <p className="text-3xl sm:text-4xl font-bold text-brand-gray">1.2M eSUSD</p>
+          </div>
+        </div>
+      </div>
       {/* Main Vault Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
@@ -30,28 +46,6 @@ export default function Dashboard() {
         </div>
         
         <div className="space-y-6">
-          {/* Protocol Stats */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-brand-gray mb-4">Protocol Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-brand-gray/70">Total Value Locked</span>
-                <span className="text-sm font-semibold text-brand-gray">$2.4M</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-brand-gray/70">Total eSUSD Minted</span>
-                <span className="text-sm font-semibold text-brand-gray">1.2M eSUSD</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-brand-gray/70">S Price</span>
-                <span className="text-sm font-semibold text-brand-gray">$2,000</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-brand-gray/70">stS Exchange Rate</span>
-                <span className="text-sm font-semibold text-brand-gray">1.1 S</span>
-              </div>
-            </div>
-          </div>
           
           {/* Recent Activity */}
           <div className="card">
