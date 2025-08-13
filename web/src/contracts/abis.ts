@@ -121,6 +121,49 @@ export const VAULT_MANAGER_ABI = [
     "inputs": [],
     "outputs": [{"name": "", "type": "uint256"}],
     "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "CollateralDeposited",
+    "inputs": [
+      {"indexed": true, "name": "user", "type": "address"},
+      {"indexed": false, "name": "amount", "type": "uint256"},
+      {"indexed": false, "name": "isStS", "type": "bool"}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "CollateralWithdrawn",
+    "inputs": [
+      {"indexed": true, "name": "user", "type": "address"},
+      {"indexed": false, "name": "amount", "type": "uint256"},
+      {"indexed": false, "name": "isStS", "type": "bool"}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "StableMinted",
+    "inputs": [
+      {"indexed": true, "name": "user", "type": "address"},
+      {"indexed": false, "name": "amount", "type": "uint256"}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "StableBurned",
+    "inputs": [
+      {"indexed": true, "name": "user", "type": "address"},
+      {"indexed": false, "name": "amount", "type": "uint256"}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "VaultLiquidated",
+    "inputs": [
+      {"indexed": true, "name": "user", "type": "address"},
+      {"indexed": true, "name": "liquidator", "type": "address"},
+      {"indexed": false, "name": "collateralSeized", "type": "uint256"}
+    ]
   }
 ] as const
 

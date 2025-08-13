@@ -1,10 +1,58 @@
 import React, { useState } from 'react'
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import { parseUnits } from 'viem'
 import { contractAddresses } from '../contracts/addresses'
 import { VAULT_MANAGER_ABI, ERC20_ABI } from '../contracts/abis'
 
+interface ActivityItem {
+  id: string
+  type: 'deposit' | 'withdraw' | 'mint' | 'repay' | 'liquidation'
+  amount: string
+  token: string
+  timestamp: Date
+  txHash: string
+  isPending?: boolean
+}
+
+// Helper functions for optimistic updates
+const ACTIVITY_STORAGE_KEY = 'lybra_pending_activities'
+
+const addPendingActivity = (activity: ActivityItem) => {
+  const stored = localStorage.getItem(ACTIVITY_STORAGE_KEY)
+  const activities = stored ? JSON.parse(stored) : []
+  activities.unshift(activity)
+  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(activities.slice(0, 10)))
+}
+
+const updatePendingActivity = (txHash: string, isComplete: boolean) => {
+  const stored = localStorage.getItem(ACTIVITY_STORAGE_KEY)
+  if (!stored) return
+  
+  const activities = JSON.parse(stored) as ActivityItem[]
+  const updated = activities.map(activity => 
+    activity.txHash === txHash 
+      ? { ...activity, isPending: !isComplete }
+      : activity
+  )
+  
+  // Remove completed activities after a delay (they'll be picked up by event fetching)
+  if (isComplete) {
+    setTimeout(() => {
+      const current = localStorage.getItem(ACTIVITY_STORAGE_KEY)
+      if (current) {
+        const filtered = JSON.parse(current).filter((a: ActivityItem) => 
+          a.txHash !== txHash || a.isPending
+        )
+        localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(filtered))
+      }
+    }, 5000) // Remove after 5 seconds to allow event fetching to take over
+  }
+  
+  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(updated))
+}
+
 export function useVaultActions() {
+  const { address } = useAccount()
   const { writeContract, data: hash, error, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -12,7 +60,10 @@ export function useVaultActions() {
   
   const [currentAction, setCurrentAction] = useState<{
     type: 'approve' | 'approve-burn' | 'deposit' | 'burn' | 'mint' | 'withdraw' | null
-    data?: unknown
+    data?: {
+      amount?: string
+      isStS?: boolean
+    }
   }>({ type: null })
   
   const [transactionHashes, setTransactionHashes] = useState<{
@@ -23,33 +74,53 @@ export function useVaultActions() {
     withdraw?: string
   }>({})
 
-  // Save transaction hash when success
+  // Save transaction hash when success and update optimistic activities
   React.useEffect(() => {
     if (isSuccess && hash) {
       if (currentAction.type === 'approve') {
         setTransactionHashes(prev => ({ ...prev, approve: hash }))
       } else if (currentAction.type === 'deposit') {
         setTransactionHashes(prev => ({ ...prev, deposit: hash }))
+        updatePendingActivity(hash, true)
       } else if (currentAction.type === 'approve-burn') {
         setTransactionHashes(prev => ({ ...prev, approve: hash }))
       } else if (currentAction.type === 'burn') {
         setTransactionHashes(prev => ({ ...prev, burn: hash }))
+        updatePendingActivity(hash, true)
       } else {
         // For single transactions like mint, withdraw, liquidate
         const actionType = currentAction.type || 'transaction'
         setTransactionHashes(prev => ({ ...prev, [actionType]: hash }))
+        if (hash && (currentAction.type === 'mint' || currentAction.type === 'withdraw')) {
+          updatePendingActivity(hash, true)
+        }
       }
     }
   }, [isSuccess, hash, currentAction.type])
 
   // Handle two-step transactions (approve then deposit)
   React.useEffect(() => {
-    if (isSuccess && currentAction.type === 'approve' && currentAction.data) {
+    if (isSuccess && currentAction.type === 'approve' && currentAction.data?.amount && typeof currentAction.data.isStS === 'boolean') {
       const { amount, isStS } = currentAction.data
       const amountWei = parseUnits(amount, 18)
       
       // After approval succeeds, execute the deposit
       setCurrentAction({ type: 'deposit' })
+      
+      // Add optimistic activity for deposit
+      if (address) {
+        const tempTxHash = `temp-${Date.now()}-deposit`
+        addPendingActivity({
+          id: tempTxHash,
+          type: 'deposit',
+          amount,
+          token: isStS ? 'stS' : 'S',
+          timestamp: new Date(),
+          txHash: tempTxHash,
+          isPending: true
+        })
+      }
+      
       writeContract({
         address: contractAddresses.vaultManager as `0x${string}`,
         abi: VAULT_MANAGER_ABI,
@@ -58,12 +129,27 @@ export function useVaultActions() {
       })
     }
     
-    if (isSuccess && currentAction.type === 'approve-burn' && currentAction.data) {
+    if (isSuccess && currentAction.type === 'approve-burn' && currentAction.data?.amount) {
       const { amount } = currentAction.data
       const amountWei = parseUnits(amount, 18)
       
       // After approval succeeds, execute the burn
       setCurrentAction({ type: 'burn' })
+      
+      // Add optimistic activity for burn
+      if (address) {
+        const tempTxHash = `temp-${Date.now()}-burn`
+        addPendingActivity({
+          id: tempTxHash,
+          type: 'repay',
+          amount,
+          token: 'eSUSD',
+          timestamp: new Date(),
+          txHash: tempTxHash,
+          isPending: true
+        })
+      }
+      
       writeContract({
         address: contractAddresses.vaultManager as `0x${string}`,
         abi: VAULT_MANAGER_ABI,
@@ -108,6 +194,20 @@ export function useVaultActions() {
     setTransactionHashes({})
     setCurrentAction({ type: 'withdraw' })
     
+    // Add optimistic activity for withdraw
+    if (address) {
+      const tempTxHash = `temp-${Date.now()}-withdraw`
+      addPendingActivity({
+        id: tempTxHash,
+        type: 'withdraw',
+        amount,
+        token: isStS ? 'stS' : 'S',
+        timestamp: new Date(),
+        txHash: tempTxHash,
+        isPending: true
+      })
+    }
+    
     writeContract({
       address: contractAddresses.vaultManager as `0x${string}`,
       abi: VAULT_MANAGER_ABI,
@@ -122,6 +222,20 @@ export function useVaultActions() {
     // Reset transaction hashes for new transaction
     setTransactionHashes({})
     setCurrentAction({ type: 'mint' })
+    
+    // Add optimistic activity for mint
+    if (address) {
+      const tempTxHash = `temp-${Date.now()}-mint`
+      addPendingActivity({
+        id: tempTxHash,
+        type: 'mint',
+        amount,
+        token: 'eSUSD',
+        timestamp: new Date(),
+        txHash: tempTxHash,
+        isPending: true
+      })
+    }
     
     writeContract({
       address: contractAddresses.vaultManager as `0x${string}`,
