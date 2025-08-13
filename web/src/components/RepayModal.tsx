@@ -4,6 +4,7 @@ import { formatUnits } from 'viem'
 import { useVaultStore } from '../store/vaultStore'
 import { useVaultActions } from '../hooks/useVaultActions'
 import { useTokenBalances } from '../hooks/useTokenBalances'
+import TransactionProgress from './TransactionProgress'
 
 interface RepayModalProps {
   isOpen: boolean
@@ -12,17 +13,55 @@ interface RepayModalProps {
 
 export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
   const [amount, setAmount] = useState('')
+  const [showProgress, setShowProgress] = useState(false)
   const { vault } = useVaultStore()
-  const { burnStable, isPending, isSuccess, error } = useVaultActions()
+  const { burnStable, isPending, isSuccess, error, currentAction } = useVaultActions()
   const { eSUSDBalance } = useTokenBalances()
   
-  // Close modal on successful transaction
+  // Handle transaction progress
   React.useEffect(() => {
-    if (isSuccess) {
-      onClose()
-      setAmount('')
+    // Show progress modal when transaction starts
+    if (currentAction.type === 'approve-burn' && isPending) {
+      setShowProgress(true)
     }
-  }, [isSuccess, onClose])
+    
+    // Close everything when transaction completes successfully
+    if (isSuccess && currentAction.type === 'burn') {
+      setTimeout(() => {
+        setShowProgress(false)
+        onClose()
+        setAmount('')
+      }, 2000) // Show success for 2 seconds
+    }
+  }, [currentAction, isPending, isSuccess, onClose])
+
+  // Prepare transaction steps
+  const getTransactionSteps = () => {
+    const approveStatus = 
+      currentAction.type === 'approve-burn' && isPending ? 'in-progress' :
+      currentAction.type === 'burn' || (currentAction.type === 'approve-burn' && isSuccess) ? 'completed' :
+      error ? 'failed' : 'pending'
+    
+    const burnStatus = 
+      currentAction.type === 'burn' && isPending ? 'in-progress' :
+      currentAction.type === 'burn' && isSuccess ? 'completed' :
+      currentAction.type === 'burn' && error ? 'failed' : 'pending'
+
+    return [
+      {
+        id: 'approve',
+        title: 'Approve',
+        description: 'Approving eSUSD token usage...',
+        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+      },
+      {
+        id: 'burn',
+        title: 'Repay',
+        description: 'Burning eSUSD to repay debt...',
+        status: burnStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+      }
+    ]
+  }
   
   if (!isOpen || !vault) return null
   
@@ -42,6 +81,7 @@ export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
       await burnStable(amount)
     } catch (error) {
       console.error('Repay failed:', error)
+      setShowProgress(false)
     }
   }
   
@@ -163,6 +203,19 @@ export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
           )}
         </form>
       </div>
+      
+      {/* Transaction Progress Modal */}
+      <TransactionProgress
+        isOpen={showProgress}
+        onClose={() => {
+          setShowProgress(false)
+          onClose()
+          setAmount('')
+        }}
+        steps={getTransactionSteps()}
+        currentStepId={currentAction.type || 'approve'}
+        title="eSUSD Repay"
+      />
     </div>
   )
 }

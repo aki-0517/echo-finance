@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits } from 'viem'
 import { contractAddresses } from '../contracts/addresses'
@@ -8,12 +9,55 @@ export function useVaultActions() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   })
+  
+  const [currentAction, setCurrentAction] = useState<{
+    type: 'approve' | 'approve-burn' | 'deposit' | 'burn' | null
+    data?: any
+  }>({ type: null })
+
+  // Handle two-step transactions (approve then deposit)
+  React.useEffect(() => {
+    if (isSuccess && currentAction.type === 'approve' && currentAction.data) {
+      const { amount, isStS } = currentAction.data
+      const amountWei = parseUnits(amount, 18)
+      
+      // After approval succeeds, execute the deposit
+      setCurrentAction({ type: 'deposit' })
+      writeContract({
+        address: contractAddresses.vaultManager as `0x${string}`,
+        abi: VAULT_MANAGER_ABI,
+        functionName: 'depositCollateral',
+        args: [amountWei, isStS],
+      })
+    }
+    
+    if (isSuccess && currentAction.type === 'approve-burn' && currentAction.data) {
+      const { amount } = currentAction.data
+      const amountWei = parseUnits(amount, 18)
+      
+      // After approval succeeds, execute the burn
+      setCurrentAction({ type: 'burn' })
+      writeContract({
+        address: contractAddresses.vaultManager as `0x${string}`,
+        abi: VAULT_MANAGER_ABI,
+        functionName: 'burnStable',
+        args: [amountWei],
+      })
+    }
+    
+    if (isSuccess && (currentAction.type === 'deposit' || currentAction.type === 'burn')) {
+      setCurrentAction({ type: null })
+    }
+  }, [isSuccess, currentAction, writeContract])
 
   const depositCollateral = async (amount: string, isStS: boolean) => {
     const tokenAddress = isStS ? contractAddresses.stSToken : contractAddresses.sToken
     const amountWei = parseUnits(amount, 18)
 
     try {
+      // Set current action to track the approve step
+      setCurrentAction({ type: 'approve', data: { amount, isStS } })
+      
       // First approve the VaultManager to spend tokens
       writeContract({
         address: tokenAddress as `0x${string}`,
@@ -23,6 +67,7 @@ export function useVaultActions() {
       })
     } catch (error) {
       console.error('Approval failed:', error)
+      setCurrentAction({ type: null })
       throw error
     }
   }
@@ -53,6 +98,9 @@ export function useVaultActions() {
     const amountWei = parseUnits(amount, 18)
 
     try {
+      // Set current action to track the approve step for burn
+      setCurrentAction({ type: 'approve-burn', data: { amount } })
+      
       // First approve the VaultManager to spend eSUSD
       writeContract({
         address: contractAddresses.stablecoin as `0x${string}`,
@@ -62,6 +110,7 @@ export function useVaultActions() {
       })
     } catch (error) {
       console.error('Approval failed:', error)
+      setCurrentAction({ type: null })
       throw error
     }
   }
@@ -85,5 +134,6 @@ export function useVaultActions() {
     isSuccess,
     error,
     hash,
+    currentAction,
   }
 }

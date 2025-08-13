@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { useAccount } from 'wagmi'
 import VaultSummaryCard from './VaultSummaryCard'
 import CollateralModal from './CollateralModal'
 import MintModal from './MintModal'
 import RepayModal from './RepayModal'
 import WithdrawModal from './WithdrawModal'
-import LiquidationList from './LiquidationList'
 import { useVaultData } from '../hooks/useVaultData'
 
 export default function Dashboard() {
@@ -13,8 +11,6 @@ export default function Dashboard() {
   const [isMintModalOpen, setIsMintModalOpen] = useState(false)
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false)
-  
-  const { isConnected } = useAccount()
   
   // Load real vault data from contracts
   useVaultData()

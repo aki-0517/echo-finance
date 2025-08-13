@@ -3,6 +3,7 @@ import { X, Plus } from 'lucide-react'
 import { formatUnits } from 'viem'
 import { useTokenBalances } from '../hooks/useTokenBalances'
 import { useVaultActions } from '../hooks/useVaultActions'
+import TransactionProgress from './TransactionProgress'
 
 interface CollateralModalProps {
   isOpen: boolean
@@ -12,16 +13,54 @@ interface CollateralModalProps {
 export default function CollateralModal({ isOpen, onClose }: CollateralModalProps) {
   const [amount, setAmount] = useState('')
   const [selectedToken, setSelectedToken] = useState<'S' | 'stS'>('S')
+  const [showProgress, setShowProgress] = useState(false)
   const { sBalance, stSBalance } = useTokenBalances()
-  const { depositCollateral, isPending, isSuccess, error } = useVaultActions()
+  const { depositCollateral, isPending, isSuccess, error, currentAction } = useVaultActions()
   
-  // Close modal on successful transaction
+  // Handle transaction progress
   React.useEffect(() => {
-    if (isSuccess) {
-      onClose()
-      setAmount('')
+    // Show progress modal when transaction starts
+    if (currentAction.type === 'approve' && isPending) {
+      setShowProgress(true)
     }
-  }, [isSuccess, onClose])
+    
+    // Close everything when transaction completes successfully
+    if (isSuccess && currentAction.type === 'deposit') {
+      setTimeout(() => {
+        setShowProgress(false)
+        onClose()
+        setAmount('')
+      }, 2000) // Show success for 2 seconds
+    }
+  }, [currentAction, isPending, isSuccess, onClose])
+
+  // Prepare transaction steps
+  const getTransactionSteps = () => {
+    const approveStatus = 
+      currentAction.type === 'approve' && isPending ? 'in-progress' :
+      currentAction.type === 'deposit' || (currentAction.type === 'approve' && isSuccess) ? 'completed' :
+      error ? 'failed' : 'pending'
+    
+    const depositStatus = 
+      currentAction.type === 'deposit' && isPending ? 'in-progress' :
+      currentAction.type === 'deposit' && isSuccess ? 'completed' :
+      currentAction.type === 'deposit' && error ? 'failed' : 'pending'
+
+    return [
+      {
+        id: 'approve',
+        title: 'Approve',
+        description: `Approving ${selectedToken} token usage...`,
+        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+      },
+      {
+        id: 'deposit',
+        title: 'Deposit',
+        description: 'Depositing collateral to vault...',
+        status: depositStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+      }
+    ]
+  }
   
   if (!isOpen) return null
   
@@ -38,12 +77,9 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
     
     try {
       await depositCollateral(amount, selectedToken === 'stS')
-      if (isSuccess) {
-        onClose()
-        setAmount('')
-      }
     } catch (error) {
       console.error('Deposit failed:', error)
+      setShowProgress(false)
     }
   }
   
@@ -171,6 +207,19 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
           )}
         </form>
       </div>
+      
+      {/* Transaction Progress Modal */}
+      <TransactionProgress
+        isOpen={showProgress}
+        onClose={() => {
+          setShowProgress(false)
+          onClose()
+          setAmount('')
+        }}
+        steps={getTransactionSteps()}
+        currentStepId={currentAction.type || 'approve'}
+        title={`${selectedToken} Deposit`}
+      />
     </div>
   )
 }
