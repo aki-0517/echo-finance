@@ -48,11 +48,11 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
   const newHealthFactor = newLTV > 0 ? (150 * 100) / newLTV : vault.healthFactor
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Mint eSUSD</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-white/10 backdrop-blur-xl rounded-xl shadow-xl max-w-md w-full border border-white/10">
+        <div className="flex justify-between items-center p-6 border-b border-white/10">
+          <h2 className="text-xl font-semibold text-brand-gray">Mint eSUSD</h2>
+          <button onClick={onClose} className="text-brand-gray/60 hover:text-brand-gray">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -60,7 +60,7 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Amount Input */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-brand-gray/80">
               Amount to Mint
             </label>
             <div className="space-y-2">
@@ -79,15 +79,15 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
                   <button
                     type="button"
                     onClick={handleMaxClick}
-                    className="text-xs text-sonic-600 hover:text-sonic-700 font-medium"
+                    className="text-xs text-brand-primary hover:text-brand-accent font-medium"
                   >
                     MAX
                   </button>
-                  <span className="text-sm text-gray-500">eSUSD</span>
+                  <span className="text-sm text-brand-gray/60">eSUSD</span>
                 </div>
               </div>
               
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-sm text-brand-gray/70">
                 <span>Max Mintable: {maxMintable.toFixed(6)} eSUSD</span>
                 {amount && (
                   <span>New LTV: {newLTV.toFixed(1)}%</span>
@@ -100,11 +100,11 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
           {amount && parseFloat(amount) > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Current Health Factor</span>
+                <span className="text-brand-gray/70">Current Health Factor</span>
                 <span className="font-medium">{vault.healthFactor.toFixed(1)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">New Health Factor</span>
+                <span className="text-brand-gray/70">New Health Factor</span>
                 <span className={`font-medium ${newHealthFactor < 120 ? 'text-red-600' : newHealthFactor < 150 ? 'text-yellow-600' : 'text-green-600'}`}>
                   {newHealthFactor.toFixed(1)}
                 </span>
@@ -114,8 +114,8 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
           
           {/* Warning */}
           {newHealthFactor < 130 && amount && parseFloat(amount) > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div className="text-sm text-yellow-800">
+            <div className="bg-brand-highlight/15 border border-brand-highlight/30 rounded-lg p-3">
+              <div className="text-sm text-brand-primary">
                 <div className="font-medium">⚠️ Warning</div>
                 <div>Your health factor will be low. Consider minting less to avoid liquidation risk.</div>
               </div>
@@ -123,8 +123,8 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
           )}
           
           {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="text-sm text-blue-800">
+          <div className="bg-gradient-to-r from-brand-highlight/25 to-brand-primary/25 border border-brand-highlight/30 rounded-lg p-3">
+            <div className="text-sm text-brand-primary">
               <div className="font-medium">ℹ️ About eSUSD</div>
               <div>eSUSD is a collateral-backed stablecoin pegged to $1 USD. Interest-free borrowing powered by staking rewards.</div>
             </div>

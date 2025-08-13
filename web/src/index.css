@@ -4,28 +4,40 @@
 
 @layer base {
   html {
-    font-family: system-ui, sans-serif;
+    font-family: 'Satoshi', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, sans-serif;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-brand-deep/95 text-brand-gray;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-sonic-600 hover:bg-sonic-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md;
   }
-  
+
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-brand-ink/10 hover:bg-brand-ink/20 text-brand-gray font-medium py-2 px-4 rounded-lg transition-colors border border-white/20 hover:border-white/30;
   }
-  
+
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+    @apply bg-white/10 backdrop-blur-sm rounded-xl shadow-md border border-white/20 p-6;
   }
-  
+
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sonic-500 focus:border-sonic-500;
+    @apply w-full px-3 py-2 border border-brand-ink/20 bg-white/80 text-black rounded-lg focus:ring-2 focus:ring-brand-highlight focus:border-brand-highlight placeholder-brand-ink/40;
+  }
+
+  .badge-soft {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-highlight/15 text-brand-primary;
+  }
+
+  /* Brand Gradients */
+  .grad-orange {
+    background-image: linear-gradient(90deg, #FF9401 0%, #DF5F28 100%);
+  }
+  .grad-black {
+    background-image: linear-gradient(90deg, #160401 0%, #2B2322 100%);
   }
 }

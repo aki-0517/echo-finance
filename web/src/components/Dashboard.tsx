@@ -32,42 +32,42 @@ export default function Dashboard() {
         <div className="space-y-6">
           {/* Protocol Stats */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Protocol Stats</h3>
+            <h3 className="text-lg font-semibold text-brand-gray mb-4">Protocol Stats</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total Value Locked</span>
-                <span className="text-sm font-semibold">$2.4M</span>
+                <span className="text-sm text-brand-gray/70">Total Value Locked</span>
+                <span className="text-sm font-semibold text-brand-gray">$2.4M</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total eSUSD Minted</span>
-                <span className="text-sm font-semibold">1.2M eSUSD</span>
+                <span className="text-sm text-brand-gray/70">Total eSUSD Minted</span>
+                <span className="text-sm font-semibold text-brand-gray">1.2M eSUSD</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">S Price</span>
-                <span className="text-sm font-semibold">$2,000</span>
+                <span className="text-sm text-brand-gray/70">S Price</span>
+                <span className="text-sm font-semibold text-brand-gray">$2,000</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">stS Exchange Rate</span>
-                <span className="text-sm font-semibold">1.1 S</span>
+                <span className="text-sm text-brand-gray/70">stS Exchange Rate</span>
+                <span className="text-sm font-semibold text-brand-gray">1.1 S</span>
               </div>
             </div>
           </div>
           
           {/* Recent Activity */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <h3 className="text-lg font-semibold text-brand-gray mb-4">Recent Activity</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Deposited 2 S</span>
-                <span className="text-gray-500">2h ago</span>
+                <span className="text-brand-gray/70">Deposited 2 S</span>
+                <span className="text-brand-gray/60">2h ago</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Minted 1000 eSUSD</span>
-                <span className="text-gray-500">1d ago</span>
+                <span className="text-brand-gray/70">Minted 1000 eSUSD</span>
+                <span className="text-brand-gray/60">1d ago</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Repaid 500 eSUSD</span>
-                <span className="text-gray-500">3d ago</span>
+                <span className="text-brand-gray/70">Repaid 500 eSUSD</span>
+                <span className="text-brand-gray/60">3d ago</span>
               </div>
             </div>
           </div>

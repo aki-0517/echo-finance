@@ -67,11 +67,11 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   const canWithdraw = currentDebt === 0 || newHealthFactor >= 150
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Withdraw Collateral</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-white/10 backdrop-blur-xl rounded-xl shadow-xl max-w-md w-full border border-white/10">
+        <div className="flex justify-between items-center p-6 border-b border-white/10">
+          <h2 className="text-xl font-semibold text-brand-gray">Withdraw Collateral</h2>
+          <button onClick={onClose} className="text-brand-gray/60 hover:text-brand-gray">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -79,7 +79,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Token Selection */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-brand-gray/80">
               Select Token
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -88,12 +88,12 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 onClick={() => setSelectedToken('S')}
                 className={`p-3 rounded-lg border-2 text-center font-medium transition-colors ${
                   selectedToken === 'S'
-                    ? 'border-sonic-500 bg-sonic-50 text-sonic-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-brand-highlight bg-white/10 text-brand-highlight'
+                    : 'border-white/10 hover:border-white/20 text-brand-gray'
                 }`}
               >
                 <div className="text-lg">S</div>
-                <div className="text-xs text-gray-500">{sCollateral.toFixed(6)} available</div>
+                <div className="text-xs text-brand-gray/60">{sCollateral.toFixed(6)} available</div>
               </button>
               
               <button
@@ -101,19 +101,19 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 onClick={() => setSelectedToken('stS')}
                 className={`p-3 rounded-lg border-2 text-center font-medium transition-colors ${
                   selectedToken === 'stS'
-                    ? 'border-sonic-500 bg-sonic-50 text-sonic-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-brand-highlight bg-white/10 text-brand-highlight'
+                    : 'border-white/10 hover:border-white/20 text-brand-gray'
                 }`}
               >
                 <div className="text-lg">stS</div>
-                <div className="text-xs text-gray-500">{stSCollateral.toFixed(6)} available</div>
+                <div className="text-xs text-brand-gray/60">{stSCollateral.toFixed(6)} available</div>
               </button>
             </div>
           </div>
           
           {/* Amount Input */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-brand-gray/80">
               Amount
             </label>
             <div className="space-y-2">
@@ -132,15 +132,15 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                   <button
                     type="button"
                     onClick={handleMaxClick}
-                    className="text-xs text-sonic-600 hover:text-sonic-700 font-medium"
+                    className="text-xs text-brand-primary hover:text-brand-accent font-medium"
                   >
                     MAX
                   </button>
-                  <span className="text-sm text-gray-500">{selectedToken}</span>
+                  <span className="text-sm text-brand-gray/60">{selectedToken}</span>
                 </div>
               </div>
               
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-sm text-brand-gray/70">
                 <span>Available: {maxWithdrawable.toFixed(6)} {selectedToken}</span>
                 {amount && (
                   <span>
@@ -155,11 +155,11 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           {amount && parseFloat(amount) > 0 && currentDebt > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Current Health Factor</span>
+                <span className="text-brand-gray/70">Current Health Factor</span>
                 <span className="font-medium">{vault.healthFactor.toFixed(1)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">New Health Factor</span>
+                <span className="text-brand-gray/70">New Health Factor</span>
                 <span className={`font-medium ${newHealthFactor < 120 ? 'text-red-600' : newHealthFactor < 150 ? 'text-yellow-600' : 'text-green-600'}`}>
                   {newHealthFactor === Infinity ? '∞' : newHealthFactor.toFixed(1)}
                 </span>
@@ -169,8 +169,8 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           
           {/* Warning */}
           {!canWithdraw && amount && parseFloat(amount) > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="text-sm text-red-800">
+            <div className="bg-red-50/60 border border-red-200/60 rounded-lg p-3">
+              <div className="text-sm text-red-500">
                 <div className="font-medium">⚠️ Cannot Withdraw</div>
                 <div>This withdrawal would put your health factor below 150%. Please reduce the amount or repay debt first.</div>
               </div>
@@ -179,8 +179,8 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           
           {/* No Debt Notice */}
           {currentDebt === 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="text-sm text-green-800">
+            <div className="bg-brand-highlight/15 border border-brand-highlight/30 rounded-lg p-3">
+              <div className="text-sm text-brand-primary">
                 <div className="font-medium">✅ No Debt</div>
                 <div>You can withdraw all your collateral since you have no outstanding debt.</div>
               </div>
@@ -188,8 +188,8 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           )}
           
           {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="text-sm text-blue-800">
+          <div className="bg-gradient-to-r from-brand-highlight/25 to-brand-primary/25 border border-brand-highlight/30 rounded-lg p-3">
+            <div className="text-sm text-brand-primary">
               <div className="font-medium">ℹ️ About Withdrawing</div>
               <div>You can only withdraw collateral if it maintains a health factor above 150% or if you have no debt.</div>
             </div>
