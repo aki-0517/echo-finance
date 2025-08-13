@@ -20,6 +20,10 @@ contract VaultManager is Ownable, ReentrancyGuard {
     
     mapping(address => Vault) public vaults;
     
+    // Protocol statistics tracking
+    uint256 public totalSCollateral;
+    uint256 public totalStSCollateral;
+    
     IERC20Extended public immutable sToken;
     IStakedToken public immutable stSToken;
     CollateralAdapter public immutable collateralAdapter;
@@ -63,9 +67,11 @@ contract VaultManager is Ownable, ReentrancyGuard {
         if (isStS) {
             stSToken.safeTransferFrom(msg.sender, address(this), amount);
             vaults[msg.sender].collateralStS += amount;
+            totalStSCollateral += amount;
         } else {
             sToken.safeTransferFrom(msg.sender, address(this), amount);
             vaults[msg.sender].collateralS += amount;
+            totalSCollateral += amount;
         }
         
         emit CollateralDeposited(msg.sender, amount, isStS);
@@ -79,9 +85,11 @@ contract VaultManager is Ownable, ReentrancyGuard {
         if (isStS) {
             require(vault.collateralStS >= amount, "Insufficient stS collateral");
             vault.collateralStS -= amount;
+            totalStSCollateral -= amount;
         } else {
             require(vault.collateralS >= amount, "Insufficient S collateral");
             vault.collateralS -= amount;
+            totalSCollateral -= amount;
         }
         
         // Check if vault remains healthy after withdrawal
@@ -141,10 +149,12 @@ contract VaultManager is Ownable, ReentrancyGuard {
         // Transfer collateral to liquidator at discounted rate
         if (vault.collateralS > 0) {
             sToken.safeTransfer(msg.sender, vault.collateralS);
+            totalSCollateral -= vault.collateralS;
             vault.collateralS = 0;
         }
         if (vault.collateralStS > 0) {
             stSToken.safeTransfer(msg.sender, vault.collateralStS);
+            totalStSCollateral -= vault.collateralStS;
             vault.collateralStS = 0;
         }
         
@@ -187,6 +197,15 @@ contract VaultManager is Ownable, ReentrancyGuard {
         
         if (maxDebt <= currentDebt) return 0;
         return maxDebt - currentDebt;
+    }
+    
+    // Protocol statistics functions
+    function getTotalCollateralValue() public view returns (uint256) {
+        return collateralAdapter.getCollateralUSDValue(totalSCollateral, totalStSCollateral);
+    }
+    
+    function getTotalDebt() public view returns (uint256) {
+        return stablecoin.totalSupply();
     }
     
     function getAllLiquidatableVaults(address[] calldata users) external view returns (address[] memory) {

@@ -5,6 +5,8 @@ import MintModal from './MintModal'
 import RepayModal from './RepayModal'
 import WithdrawModal from './WithdrawModal'
 import { useVaultData } from '../hooks/useVaultData'
+import { useProtocolStats } from '../hooks/useProtocolStats'
+import { useRecentActivity, formatActivityText, formatRelativeTime } from '../hooks/useRecentActivity'
 
 export default function Dashboard() {
   const [isCollateralModalOpen, setIsCollateralModalOpen] = useState(false)
@@ -14,6 +16,10 @@ export default function Dashboard() {
   
   // Load real vault data from contracts
   useVaultData()
+  
+  // Load protocol statistics and recent activity
+  const protocolStats = useProtocolStats()
+  const recentActivity = useRecentActivity()
   
   
   return (
@@ -26,11 +32,23 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
           <div>
             <p className="text-sm text-brand-gray/70">Total Value Locked</p>
-            <p className="text-3xl sm:text-4xl font-bold text-brand-gray">$2.4M</p>
+            {protocolStats.isLoading ? (
+              <div className="animate-pulse bg-brand-gray/20 h-10 w-32 rounded"></div>
+            ) : protocolStats.error ? (
+              <p className="text-3xl sm:text-4xl font-bold text-red-500">Error</p>
+            ) : (
+              <p className="text-3xl sm:text-4xl font-bold text-brand-gray">{protocolStats.totalValueLocked}</p>
+            )}
           </div>
           <div>
             <p className="text-sm text-brand-gray/70">Total eSUSD Minted</p>
-            <p className="text-3xl sm:text-4xl font-bold text-brand-gray">1.2M eSUSD</p>
+            {protocolStats.isLoading ? (
+              <div className="animate-pulse bg-brand-gray/20 h-10 w-40 rounded"></div>
+            ) : protocolStats.error ? (
+              <p className="text-3xl sm:text-4xl font-bold text-red-500">Error</p>
+            ) : (
+              <p className="text-3xl sm:text-4xl font-bold text-brand-gray">{protocolStats.totalESUSDMinted}</p>
+            )}
           </div>
         </div>
       </div>
@@ -50,20 +68,29 @@ export default function Dashboard() {
           {/* Recent Activity */}
           <div className="card">
             <h3 className="text-lg font-semibold text-brand-gray mb-4">Recent Activity</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-brand-gray/70">Deposited 2 S</span>
-                <span className="text-brand-gray/60">2h ago</span>
+            {recentActivity.isLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="animate-pulse bg-brand-gray/20 h-4 w-24 rounded"></div>
+                    <div className="animate-pulse bg-brand-gray/20 h-4 w-12 rounded"></div>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span className="text-brand-gray/70">Minted 1000 eSUSD</span>
-                <span className="text-brand-gray/60">1d ago</span>
+            ) : recentActivity.error ? (
+              <div className="text-sm text-red-500">Failed to load recent activity</div>
+            ) : recentActivity.activities.length === 0 ? (
+              <div className="text-sm text-brand-gray/70">No recent activity</div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                {recentActivity.activities.slice(0, 5).map((activity) => (
+                  <div key={activity.id} className="flex justify-between">
+                    <span className="text-brand-gray/70">{formatActivityText(activity)}</span>
+                    <span className="text-brand-gray/60">{formatRelativeTime(activity.timestamp)}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span className="text-brand-gray/70">Repaid 500 eSUSD</span>
-                <span className="text-brand-gray/60">3d ago</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

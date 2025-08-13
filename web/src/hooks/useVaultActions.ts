@@ -12,7 +12,7 @@ export function useVaultActions() {
   
   const [currentAction, setCurrentAction] = useState<{
     type: 'approve' | 'approve-burn' | 'deposit' | 'burn' | 'mint' | 'withdraw' | null
-    data?: any
+    data?: unknown
   }>({ type: null })
   
   const [transactionHashes, setTransactionHashes] = useState<{

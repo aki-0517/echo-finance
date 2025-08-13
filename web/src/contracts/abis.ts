@@ -93,6 +93,34 @@ export const VAULT_MANAGER_ABI = [
     "inputs": [{"name": "users", "type": "address[]"}],
     "outputs": [{"name": "", "type": "address[]"}],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTotalCollateralValue",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTotalDebt",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalSCollateral",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalStSCollateral",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
   }
 ] as const
 
