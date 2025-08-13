@@ -1,18 +1,20 @@
 import React, { useState } from 'react'
-import { X, DollarSign } from 'lucide-react'
+import { X, Minus } from 'lucide-react'
 import { formatUnits } from 'viem'
 import { useVaultStore } from '../store/vaultStore'
 import { useVaultActions } from '../hooks/useVaultActions'
+import { useTokenBalances } from '../hooks/useTokenBalances'
 
-interface MintModalProps {
+interface RepayModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export default function MintModal({ isOpen, onClose }: MintModalProps) {
+export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
   const [amount, setAmount] = useState('')
   const { vault } = useVaultStore()
-  const { mintStable, isPending, isSuccess, error } = useVaultActions()
+  const { burnStable, isPending, isSuccess, error } = useVaultActions()
+  const { eSUSDBalance } = useTokenBalances()
   
   // Close modal on successful transaction
   React.useEffect(() => {
@@ -24,10 +26,12 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
   
   if (!isOpen || !vault) return null
   
-  const maxMintable = parseFloat(formatUnits(vault.maxMintable, 18))
+  const currentDebt = parseFloat(formatUnits(vault.debt, 18))
+  const eSUSDBalanceFormatted = parseFloat(formatUnits(eSUSDBalance, 18))
+  const maxRepayable = Math.min(currentDebt, eSUSDBalanceFormatted)
   
   const handleMaxClick = () => {
-    setAmount(maxMintable.toString())
+    setAmount(maxRepayable.toString())
   }
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,23 +39,22 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
     if (!amount || parseFloat(amount) <= 0) return
     
     try {
-      await mintStable(amount)
+      await burnStable(amount)
     } catch (error) {
-      console.error('Mint failed:', error)
+      console.error('Repay failed:', error)
     }
   }
   
-  const newLTV = vault && amount ? 
-    ((Number(vault.debt) + parseFloat(amount) * Math.pow(10, 18)) * 100) / Number(vault.collateralValue) : 
-    vault.ltv
-  
-  const newHealthFactor = newLTV > 0 ? (150 * 100) / newLTV : vault.healthFactor
+  const newDebt = amount ? Math.max(0, currentDebt - parseFloat(amount)) : currentDebt
+  const newLTV = vault && newDebt > 0 ? 
+    (newDebt * Math.pow(10, 18) * 100) / Number(vault.collateralValue) : 0
+  const newHealthFactor = newLTV > 0 ? (150 * 100) / newLTV : Infinity
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Mint eSUSD</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Repay eSUSD</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
           </button>
@@ -61,7 +64,7 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
           {/* Amount Input */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
-              Amount to Mint
+              Amount to Repay
             </label>
             <div className="space-y-2">
               <div className="relative">
@@ -73,7 +76,7 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
                   onChange={(e) => setAmount(e.target.value)}
                   className="input-field pr-24"
                   required
-                  max={maxMintable}
+                  max={maxRepayable}
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                   <button
@@ -88,36 +91,40 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
               </div>
               
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Max Mintable: {maxMintable.toFixed(6)} eSUSD</span>
-                {amount && (
-                  <span>New LTV: {newLTV.toFixed(1)}%</span>
-                )}
+                <span>Balance: {eSUSDBalanceFormatted.toFixed(6)} eSUSD</span>
+                <span>Debt: {currentDebt.toFixed(6)} eSUSD</span>
               </div>
             </div>
           </div>
           
-          {/* Health Factor Preview */}
+          {/* Debt Preview */}
           {amount && parseFloat(amount) > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Current Health Factor</span>
-                <span className="font-medium">{vault.healthFactor.toFixed(1)}</span>
+                <span className="text-gray-600">Current Debt</span>
+                <span className="font-medium">{currentDebt.toFixed(6)} eSUSD</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">New Health Factor</span>
-                <span className={`font-medium ${newHealthFactor < 120 ? 'text-red-600' : newHealthFactor < 150 ? 'text-yellow-600' : 'text-green-600'}`}>
-                  {newHealthFactor.toFixed(1)}
-                </span>
+                <span className="text-gray-600">New Debt</span>
+                <span className="font-medium text-green-600">{newDebt.toFixed(6)} eSUSD</span>
               </div>
+              {newDebt > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">New Health Factor</span>
+                  <span className={`font-medium ${newHealthFactor < 120 ? 'text-red-600' : newHealthFactor < 150 ? 'text-yellow-600' : 'text-green-600'}`}>
+                    {newHealthFactor === Infinity ? '∞' : newHealthFactor.toFixed(1)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
           
-          {/* Warning */}
-          {newHealthFactor < 130 && amount && parseFloat(amount) > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div className="text-sm text-yellow-800">
-                <div className="font-medium">⚠️ Warning</div>
-                <div>Your health factor will be low. Consider minting less to avoid liquidation risk.</div>
+          {/* Full Repayment Notice */}
+          {amount && parseFloat(amount) >= currentDebt && currentDebt > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="text-sm text-green-800">
+                <div className="font-medium">✅ Full Repayment</div>
+                <div>You will fully repay your debt and can withdraw all collateral.</div>
               </div>
             </div>
           )}
@@ -125,26 +132,26 @@ export default function MintModal({ isOpen, onClose }: MintModalProps) {
           {/* Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="text-sm text-blue-800">
-              <div className="font-medium">ℹ️ About eSUSD</div>
-              <div>eSUSD is a collateral-backed stablecoin pegged to $1 USD. Interest-free borrowing powered by staking rewards.</div>
+              <div className="font-medium">ℹ️ About Repaying</div>
+              <div>Repaying eSUSD reduces your debt and improves your health factor. Fully repaying allows collateral withdrawal.</div>
             </div>
           </div>
           
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxMintable || isPending}
+            disabled={!amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxRepayable || isPending}
             className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Minting...
+                Repaying...
               </div>
             ) : (
               <>
-                <DollarSign className="w-4 h-4 mr-2" />
-                Mint {amount || '0'} eSUSD
+                <Minus className="w-4 h-4 mr-2" />
+                Repay {amount || '0'} eSUSD
               </>
             )}
           </button>

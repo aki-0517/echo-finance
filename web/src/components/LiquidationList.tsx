@@ -1,4 +1,5 @@
 import { AlertTriangle, Zap } from 'lucide-react'
+import { useVaultActions } from '../hooks/useVaultActions'
 
 interface LiquidatableVault {
   address: string
@@ -8,11 +9,8 @@ interface LiquidatableVault {
   liquidationReward: number
 }
 
-interface LiquidationListProps {
-  onLiquidate: (address: string) => void
-}
-
-export default function LiquidationList({ onLiquidate }: LiquidationListProps) {
+export default function LiquidationList() {
+  const { liquidateVault, isPending } = useVaultActions()
   // Mock liquidatable vaults - in real implementation, fetch from contract
   const liquidatableVaults: LiquidatableVault[] = [
     {
@@ -114,11 +112,12 @@ export default function LiquidationList({ onLiquidate }: LiquidationListProps) {
                   </td>
                   <td className="py-3 px-4">
                     <button
-                      onClick={() => onLiquidate(vault.address)}
-                      className="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors"
+                      onClick={() => liquidateVault(vault.address)}
+                      disabled={isPending}
+                      className="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
                     >
                       <Zap className="w-3 h-3 mr-1" />
-                      Liquidate
+                      {isPending ? 'Liquidating...' : 'Liquidate'}
                     </button>
                   </td>
                 </tr>

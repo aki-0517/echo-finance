@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, ArrowDown } from 'lucide-react'
 import { formatUnits } from 'viem'
-import { useTokenBalances } from '../hooks/useTokenBalances'
+import { useVaultStore } from '../store/vaultStore'
 import { useVaultActions } from '../hooks/useVaultActions'
 
-interface CollateralModalProps {
+interface WithdrawModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export default function CollateralModal({ isOpen, onClose }: CollateralModalProps) {
+export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   const [amount, setAmount] = useState('')
   const [selectedToken, setSelectedToken] = useState<'S' | 'stS'>('S')
-  const { sBalance, stSBalance } = useTokenBalances()
-  const { depositCollateral, isPending, isSuccess, error } = useVaultActions()
+  const { vault } = useVaultStore()
+  const { withdrawCollateral, isPending, isSuccess, error } = useVaultActions()
   
   // Close modal on successful transaction
   React.useEffect(() => {
@@ -23,13 +23,27 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
     }
   }, [isSuccess, onClose])
   
-  if (!isOpen) return null
+  if (!isOpen || !vault) return null
+  
+  const sCollateral = parseFloat(formatUnits(vault.collateralS, 18))
+  const stSCollateral = parseFloat(formatUnits(vault.collateralStS, 18))
+  const currentDebt = parseFloat(formatUnits(vault.debt, 18))
+  
+  const maxWithdrawable = selectedToken === 'S' ? sCollateral : stSCollateral
   
   const handleMaxClick = () => {
-    const balance = selectedToken === 'S' 
-      ? formatUnits(sBalance, 18)
-      : formatUnits(stSBalance, 18)
-    setAmount(balance)
+    if (currentDebt === 0) {
+      // If no debt, can withdraw all collateral
+      setAmount(maxWithdrawable.toString())
+    } else {
+      // Calculate max withdrawable while maintaining 150% collateral ratio
+      const minCollateralValue = currentDebt * 1.5 // 150% MCR
+      const currentCollateralValue = Number(vault.collateralValue) / Math.pow(10, 18)
+      const tokenPrice = selectedToken === 'S' ? 2000 : 2200 // Mock prices
+      const maxWithdrawValue = Math.max(0, currentCollateralValue - minCollateralValue)
+      const maxWithdrawTokens = Math.min(maxWithdrawable, maxWithdrawValue / tokenPrice)
+      setAmount(Math.max(0, maxWithdrawTokens).toString())
+    }
   }
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,25 +51,26 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
     if (!amount || parseFloat(amount) <= 0) return
     
     try {
-      await depositCollateral(amount, selectedToken === 'stS')
-      if (isSuccess) {
-        onClose()
-        setAmount('')
-      }
+      await withdrawCollateral(amount, selectedToken === 'stS')
     } catch (error) {
-      console.error('Deposit failed:', error)
+      console.error('Withdraw failed:', error)
     }
   }
   
-  const currentBalance = selectedToken === 'S' 
-    ? formatUnits(sBalance, 18)
-    : formatUnits(stSBalance, 18)
+  // Calculate new health factor after withdrawal
+  const tokenPrice = selectedToken === 'S' ? 2000 : 2200
+  const withdrawValue = amount ? parseFloat(amount) * tokenPrice : 0
+  const newCollateralValue = Number(vault.collateralValue) / Math.pow(10, 18) - withdrawValue
+  const newLTV = currentDebt > 0 && newCollateralValue > 0 ? (currentDebt * 100) / newCollateralValue : 0
+  const newHealthFactor = newLTV > 0 ? (150 * 100) / newLTV : vault.healthFactor
+  
+  const canWithdraw = currentDebt === 0 || newHealthFactor >= 150
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Deposit Collateral</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Withdraw Collateral</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
           </button>
@@ -78,7 +93,7 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
                 }`}
               >
                 <div className="text-lg">S</div>
-                <div className="text-xs text-gray-500">Sonic</div>
+                <div className="text-xs text-gray-500">{sCollateral.toFixed(6)} available</div>
               </button>
               
               <button
@@ -91,7 +106,7 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
                 }`}
               >
                 <div className="text-lg">stS</div>
-                <div className="text-xs text-gray-500">Staked Sonic</div>
+                <div className="text-xs text-gray-500">{stSCollateral.toFixed(6)} available</div>
               </button>
             </div>
           </div>
@@ -111,6 +126,7 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
                   onChange={(e) => setAmount(e.target.value)}
                   className="input-field pr-20"
                   required
+                  max={maxWithdrawable}
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                   <button
@@ -125,41 +141,75 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
               </div>
               
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Balance: {parseFloat(currentBalance).toFixed(6)} {selectedToken}</span>
+                <span>Available: {maxWithdrawable.toFixed(6)} {selectedToken}</span>
                 {amount && (
                   <span>
-                    ≈ ${(parseFloat(amount) * (selectedToken === 'S' ? 2000 : 2200)).toLocaleString()}
+                    ≈ ${(parseFloat(amount) * tokenPrice).toLocaleString()}
                   </span>
                 )}
               </div>
             </div>
           </div>
           
-          {/* Benefits Info */}
-          {selectedToken === 'stS' && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="text-sm text-green-800">
-                <div className="font-medium">✨ stS Benefits</div>
-                <div>Higher collateral efficiency due to staking rewards (~10% APY)</div>
+          {/* Health Factor Preview */}
+          {amount && parseFloat(amount) > 0 && currentDebt > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Current Health Factor</span>
+                <span className="font-medium">{vault.healthFactor.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">New Health Factor</span>
+                <span className={`font-medium ${newHealthFactor < 120 ? 'text-red-600' : newHealthFactor < 150 ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {newHealthFactor === Infinity ? '∞' : newHealthFactor.toFixed(1)}
+                </span>
               </div>
             </div>
           )}
           
+          {/* Warning */}
+          {!canWithdraw && amount && parseFloat(amount) > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="text-sm text-red-800">
+                <div className="font-medium">⚠️ Cannot Withdraw</div>
+                <div>This withdrawal would put your health factor below 150%. Please reduce the amount or repay debt first.</div>
+              </div>
+            </div>
+          )}
+          
+          {/* No Debt Notice */}
+          {currentDebt === 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="text-sm text-green-800">
+                <div className="font-medium">✅ No Debt</div>
+                <div>You can withdraw all your collateral since you have no outstanding debt.</div>
+              </div>
+            </div>
+          )}
+          
+          {/* Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="text-sm text-blue-800">
+              <div className="font-medium">ℹ️ About Withdrawing</div>
+              <div>You can only withdraw collateral if it maintains a health factor above 150% or if you have no debt.</div>
+            </div>
+          </div>
+          
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!amount || parseFloat(amount) <= 0 || isPending}
+            disabled={!amount || parseFloat(amount) <= 0 || !canWithdraw || isPending || parseFloat(amount) > maxWithdrawable}
             className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Depositing...
+                Withdrawing...
               </div>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-2" />
-                Deposit {selectedToken}
+                <ArrowDown className="w-4 h-4 mr-2" />
+                Withdraw {selectedToken}
               </>
             )}
           </button>

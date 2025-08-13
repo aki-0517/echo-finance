@@ -3,7 +3,6 @@ import { useAccount } from 'wagmi'
 import { Plus, Minus, DollarSign, ArrowUpCircle } from 'lucide-react'
 import HealthFactorBar from './HealthFactorBar'
 import { useVaultStore } from '../store/vaultStore'
-import { useState } from 'react'
 
 interface VaultSummaryCardProps {
   onDepositClick: () => void

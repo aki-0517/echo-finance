@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import VaultSummaryCard from './VaultSummaryCard'
 import CollateralModal from './CollateralModal'
 import MintModal from './MintModal'
+import RepayModal from './RepayModal'
+import WithdrawModal from './WithdrawModal'
 import LiquidationList from './LiquidationList'
-import { useVaultStore } from '../store/vaultStore'
+import { useVaultData } from '../hooks/useVaultData'
 
 export default function Dashboard() {
   const [isCollateralModalOpen, setIsCollateralModalOpen] = useState(false)
@@ -12,62 +14,11 @@ export default function Dashboard() {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false)
   
-  const { address, isConnected } = useAccount()
-  const { setVault, setLoading, setError } = useVaultStore()
+  const { isConnected } = useAccount()
   
-  // Mock vault data loading - in real implementation, fetch from contracts
-  useEffect(() => {
-    if (isConnected && address) {
-      setLoading(true)
-      
-      // Simulate API call
-      setTimeout(() => {
-        // Mock vault data
-        setVault({
-          collateralS: BigInt('5000000000000000000'), // 5 S
-          collateralStS: BigInt('3000000000000000000'), // 3 stS
-          debt: BigInt('8000000000000000000000'), // 8000 eSUSD
-          collateralValue: BigInt('16600000000000000000000'), // $16,600
-          ltv: 48.2, // 48.2%
-          healthFactor: 155.8,
-          maxMintable: BigInt('2666666666666666666666'), // ~2666 eSUSD
-        })
-        setLoading(false)
-      }, 1000)
-    } else {
-      setVault(null)
-    }
-  }, [isConnected, address, setVault, setLoading])
+  // Load real vault data from contracts
+  useVaultData()
   
-  const handleDeposit = async (amount: string, isStS: boolean) => {
-    console.log('Deposit:', amount, isStS ? 'stS' : 'S')
-    // In real implementation: call VaultManager.depositCollateral
-    alert(`Depositing ${amount} ${isStS ? 'stS' : 'S'}`)
-  }
-  
-  const handleMint = async (amount: string) => {
-    console.log('Mint:', amount, 'eSUSD')
-    // In real implementation: call VaultManager.mintStable
-    alert(`Minting ${amount} eSUSD`)
-  }
-  
-  const handleWithdraw = async (amount: string, isStS: boolean) => {
-    console.log('Withdraw:', amount, isStS ? 'stS' : 'S')
-    // In real implementation: call VaultManager.withdrawCollateral
-    alert(`Withdrawing ${amount} ${isStS ? 'stS' : 'S'}`)
-  }
-  
-  const handleRepay = async (amount: string) => {
-    console.log('Repay:', amount, 'eSUSD')
-    // In real implementation: call VaultManager.burnStable
-    alert(`Repaying ${amount} eSUSD`)
-  }
-  
-  const handleLiquidate = async (userAddress: string) => {
-    console.log('Liquidate:', userAddress)
-    // In real implementation: call VaultManager.liquidate
-    alert(`Liquidating ${userAddress}`)
-  }
   
   return (
     <div className="space-y-8">
@@ -128,27 +79,33 @@ export default function Dashboard() {
       </div>
       
       {/* Liquidations Section */}
-      {isConnected && (
+      {/* {isConnected && (
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Liquidation Opportunities</h2>
-          <LiquidationList onLiquidate={handleLiquidate} />
+          <LiquidationList />
         </div>
-      )}
+      )} */}
       
       {/* Modals */}
       <CollateralModal
         isOpen={isCollateralModalOpen}
         onClose={() => setIsCollateralModalOpen(false)}
-        onDeposit={handleDeposit}
       />
       
       <MintModal
         isOpen={isMintModalOpen}
         onClose={() => setIsMintModalOpen(false)}
-        onMint={handleMint}
       />
       
-      {/* TODO: Add WithdrawModal and RepayModal components */}
+      <RepayModal
+        isOpen={isRepayModalOpen}
+        onClose={() => setIsRepayModalOpen(false)}
+      />
+      
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
     </div>
   )
 }
