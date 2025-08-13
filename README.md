@@ -1,4 +1,4 @@
-# Lybra Finance MVP on Sonic
+# Echo Finance (on Sonic)
 
 Sonic チェーン上で動作する担保型ステーブルコイン（eSUSD）発行プロトコルのMVP実装。
 

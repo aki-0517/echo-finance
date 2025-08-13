@@ -15,7 +15,7 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
   const [selectedToken, setSelectedToken] = useState<'S' | 'stS'>('S')
   const [showProgress, setShowProgress] = useState(false)
   const { sBalance, stSBalance } = useTokenBalances()
-  const { depositCollateral, isPending, isSuccess, error, currentAction } = useVaultActions()
+  const { depositCollateral, isPending, isSuccess, error, currentAction, transactionHashes } = useVaultActions()
   
   // Handle transaction progress
   React.useEffect(() => {
@@ -51,13 +51,15 @@ export default function CollateralModal({ isOpen, onClose }: CollateralModalProp
         id: 'approve',
         title: 'Approve',
         description: `Approving ${selectedToken} token usage...`,
-        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed',
+        txHash: transactionHashes.approve
       },
       {
         id: 'deposit',
         title: 'Deposit',
         description: 'Depositing collateral to vault...',
-        status: depositStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+        status: depositStatus as 'pending' | 'in-progress' | 'completed' | 'failed',
+        txHash: transactionHashes.deposit
       }
     ]
   }

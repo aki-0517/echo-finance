@@ -67,9 +67,14 @@ export function useVaultData() {
 
     if (vaultData && metricsData) {
       const [collateralS, collateralStS, debt] = vaultData
-      const [collateralValue, ltv, healthFactor, maxMintable] = metricsData.map(
-        (result) => result.result || BigInt(0)
-      )
+      // 全メトリクスの取得に失敗したらエラーにする（0 へフォールバックしない）
+      const results = metricsData as Array<{ status: 'success' | 'failure'; result?: bigint }>
+      const hasFailure = results.some(r => r.status !== 'success')
+      if (hasFailure) {
+        setError('Price feed unavailable or stale')
+        return
+      }
+      const [collateralValue, ltv, healthFactor, maxMintable] = results.map(r => r.result as bigint)
 
       setVault({
         collateralS: collateralS || BigInt(0),

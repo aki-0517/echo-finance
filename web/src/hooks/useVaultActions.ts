@@ -11,9 +11,36 @@ export function useVaultActions() {
   })
   
   const [currentAction, setCurrentAction] = useState<{
-    type: 'approve' | 'approve-burn' | 'deposit' | 'burn' | null
+    type: 'approve' | 'approve-burn' | 'deposit' | 'burn' | 'mint' | 'withdraw' | null
     data?: any
   }>({ type: null })
+  
+  const [transactionHashes, setTransactionHashes] = useState<{
+    approve?: string
+    deposit?: string
+    burn?: string
+    mint?: string
+    withdraw?: string
+  }>({})
+
+  // Save transaction hash when success
+  React.useEffect(() => {
+    if (isSuccess && hash) {
+      if (currentAction.type === 'approve') {
+        setTransactionHashes(prev => ({ ...prev, approve: hash }))
+      } else if (currentAction.type === 'deposit') {
+        setTransactionHashes(prev => ({ ...prev, deposit: hash }))
+      } else if (currentAction.type === 'approve-burn') {
+        setTransactionHashes(prev => ({ ...prev, approve: hash }))
+      } else if (currentAction.type === 'burn') {
+        setTransactionHashes(prev => ({ ...prev, burn: hash }))
+      } else {
+        // For single transactions like mint, withdraw, liquidate
+        const actionType = currentAction.type || 'transaction'
+        setTransactionHashes(prev => ({ ...prev, [actionType]: hash }))
+      }
+    }
+  }, [isSuccess, hash, currentAction.type])
 
   // Handle two-step transactions (approve then deposit)
   React.useEffect(() => {
@@ -45,7 +72,7 @@ export function useVaultActions() {
       })
     }
     
-    if (isSuccess && (currentAction.type === 'deposit' || currentAction.type === 'burn')) {
+    if (isSuccess && (currentAction.type === 'deposit' || currentAction.type === 'burn' || currentAction.type === 'mint' || currentAction.type === 'withdraw')) {
       setCurrentAction({ type: null })
     }
   }, [isSuccess, currentAction, writeContract])
@@ -55,6 +82,8 @@ export function useVaultActions() {
     const amountWei = parseUnits(amount, 18)
 
     try {
+      // Reset transaction hashes for new transaction
+      setTransactionHashes({})
       // Set current action to track the approve step
       setCurrentAction({ type: 'approve', data: { amount, isStS } })
       
@@ -75,6 +104,10 @@ export function useVaultActions() {
   const withdrawCollateral = async (amount: string, isStS: boolean) => {
     const amountWei = parseUnits(amount, 18)
     
+    // Reset transaction hashes for new transaction
+    setTransactionHashes({})
+    setCurrentAction({ type: 'withdraw' })
+    
     writeContract({
       address: contractAddresses.vaultManager as `0x${string}`,
       abi: VAULT_MANAGER_ABI,
@@ -85,6 +118,10 @@ export function useVaultActions() {
 
   const mintStable = async (amount: string) => {
     const amountWei = parseUnits(amount, 18)
+    
+    // Reset transaction hashes for new transaction
+    setTransactionHashes({})
+    setCurrentAction({ type: 'mint' })
     
     writeContract({
       address: contractAddresses.vaultManager as `0x${string}`,
@@ -98,6 +135,8 @@ export function useVaultActions() {
     const amountWei = parseUnits(amount, 18)
 
     try {
+      // Reset transaction hashes for new transaction
+      setTransactionHashes({})
       // Set current action to track the approve step for burn
       setCurrentAction({ type: 'approve-burn', data: { amount } })
       
@@ -135,5 +174,6 @@ export function useVaultActions() {
     error,
     hash,
     currentAction,
+    transactionHashes,
   }
 }

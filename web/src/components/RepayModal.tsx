@@ -15,7 +15,7 @@ export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
   const [amount, setAmount] = useState('')
   const [showProgress, setShowProgress] = useState(false)
   const { vault } = useVaultStore()
-  const { burnStable, isPending, isSuccess, error, currentAction } = useVaultActions()
+  const { burnStable, isPending, isSuccess, error, currentAction, transactionHashes } = useVaultActions()
   const { eSUSDBalance } = useTokenBalances()
   
   // Handle transaction progress
@@ -52,13 +52,15 @@ export default function RepayModal({ isOpen, onClose }: RepayModalProps) {
         id: 'approve',
         title: 'Approve',
         description: 'Approving eSUSD token usage...',
-        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+        status: approveStatus as 'pending' | 'in-progress' | 'completed' | 'failed',
+        txHash: transactionHashes.approve
       },
       {
         id: 'burn',
         title: 'Repay',
         description: 'Burning eSUSD to repay debt...',
-        status: burnStatus as 'pending' | 'in-progress' | 'completed' | 'failed'
+        status: burnStatus as 'pending' | 'in-progress' | 'completed' | 'failed',
+        txHash: transactionHashes.burn
       }
     ]
   }

@@ -1,4 +1,4 @@
-# Lybra Finance MVP - Smart Contracts
+# Echo Finance MVP - Smart Contracts
 
 Sonic チェーン上で動作する担保型ステーブルコイン（eSUSD）発行プロトコルのスマートコントラクト実装。
 
@@ -185,3 +185,40 @@ A: デプロイ時は `--rpc-url` を使用してください。`--fork-url` は
 unset FOUNDRY_FORK_URL
 ```
 また、スクリプト名の末尾に `:DeployAndSaveScript` を付けてターゲットを明示することを推奨します（READMEのデプロイ手順参照）。
+
+### 価格フィードが stale（古い）で UI の Total Collateral が $0.00 になる
+**原因**: `CollateralAdapter.getSPrice()` は更新時刻が1時間以上前だと `"Price data is stale"` で revert します。
+
+**再デプロイは不要**。既存の `CollateralAdapter` に対してモックの価格フィードを新規デプロイし、`setPriceFeed` で差し替えれば解消します。
+
+1) 事前準備（.env）
+```bash
+PRIVATE_KEY=0x...                  # CollateralAdapter の owner の鍵
+RPC_URL=https://rpc.testnet.soniclabs.com
+COLLATERAL_ADAPTER_ADDRESS=0x...   # DeployAndSave 実行時に .env へ保存済み
+```
+
+2) 価格フィードの差し替え（再デプロイ不要）
+```bash
+forge script script/UpdatePriceFeed.s.sol:UpdatePriceFeedScript \
+  --rpc-url $RPC_URL \
+  --broadcast -vvvv
+```
+実行ログに `New MockPriceFeed deployed at: 0x...` が出力され、`CollateralAdapter.setPriceFeed` が呼ばれます。
+
+3) 価格の更新（stale を避けるために定期的に実行）
+- 価格を更新（例: $2100、Chainlink 互換で 8 桁）
+```bash
+cast send <NEW_FEED_ADDRESS> 'setPrice(int256)' 2100e8 \
+  --private-key $PRIVATE_KEY --rpc-url $RPC_URL
+```
+
+- 価格は据え置きでタイムスタンプだけ更新
+```bash
+cast send <NEW_FEED_ADDRESS> 'setUpdatedAt(uint256)' $(date +%s) \
+  --private-key $PRIVATE_KEY --rpc-url $RPC_URL
+```
+
+補足
+- `setPriceFeed` は `onlyOwner`。`CollateralAdapter` のオーナー鍵で実行してください。
+- フロント側はアダプターのアドレスが変わらないため、差し替え後すぐに `Total Collateral` が正しく表示されます。

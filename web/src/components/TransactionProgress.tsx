@@ -1,10 +1,11 @@
-import { CheckCircle, Clock, Loader2 } from 'lucide-react'
+import { CheckCircle, Clock, Loader2, ExternalLink } from 'lucide-react'
 
 interface TransactionStep {
   id: string
   title: string
   description: string
   status: 'pending' | 'in-progress' | 'completed' | 'failed'
+  txHash?: string
 }
 
 interface TransactionProgressProps {
@@ -87,6 +88,19 @@ export default function TransactionProgress({
                   {step.status === 'in-progress' && (
                     <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
                       <div className="bg-sonic-500 h-1.5 rounded-full animate-pulse transition-all duration-500" style={{ width: '60%' }}></div>
+                    </div>
+                  )}
+                  {step.status === 'completed' && step.txHash && (
+                    <div className="mt-2">
+                      <a
+                        href={`https://testnet.sonicscan.org/tx/${step.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-xs text-sonic-600 hover:text-sonic-700 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        View on Explorer
+                      </a>
                     </div>
                   )}
                 </div>
