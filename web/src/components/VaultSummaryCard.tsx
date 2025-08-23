@@ -1,4 +1,3 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount } from 'wagmi'
 import { Plus, Minus, DollarSign, ArrowUpCircle } from 'lucide-react'
 import HealthFactorBar from './HealthFactorBar'
@@ -25,8 +24,7 @@ export default function VaultSummaryCard({
       <div className="card text-center">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-brand-gray">Connect Wallet</h2>
-          <p className="text-brand-gray/70">Connect your wallet to access your vault</p>
-          <ConnectButton />
+          <p className="text-brand-gray/70">Connect your wallet using the button in the header to access your vault</p>
         </div>
       </div>
     )
@@ -90,7 +88,6 @@ export default function VaultSummaryCard({
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-brand-gray">Your Vault</h2>
-          <ConnectButton showBalance={false} chainStatus="icon" />
         </div>
         
         {/* Vault Stats */}

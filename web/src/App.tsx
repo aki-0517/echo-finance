@@ -1,6 +1,6 @@
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import { RainbowKitProvider, ConnectButton } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
 
 import { config } from './wagmi'
@@ -21,6 +21,7 @@ function App() {
                     <h1 className="text-2xl font-bold bg-clip-text text-transparent grad-orange">
                       Echo Finance <span className="text-brand-highlight">v0.1.0</span>
                     </h1>
+                    <ConnectButton />
                   </div>
                 </div>
               </header>
