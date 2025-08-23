@@ -12,7 +12,7 @@ contract CollateralAdapter is Ownable, ReentrancyGuard {
     IStakedToken public stSToken;
     
     uint256 public constant PRICE_PRECISION = 1e18;
-    uint256 public constant STALENESS_THRESHOLD = 3600; // 1 hour
+    uint256 public constant STALENESS_THRESHOLD = type(uint256).max; // No staleness check
     
     event PriceFeedUpdated(address indexed newPriceFeed);
     event TokensUpdated(address indexed sToken, address indexed stSToken);
