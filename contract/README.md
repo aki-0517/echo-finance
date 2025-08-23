@@ -186,10 +186,77 @@ unset FOUNDRY_FORK_URL
 ```
 また、スクリプト名の末尾に `:DeployAndSaveScript` を付けてターゲットを明示することを推奨します（READMEのデプロイ手順参照）。
 
-### 価格フィードが stale（古い）で UI の Total Collateral が $0.00 になる
+## 🔗 Chainlink価格フィード自動反映設定
+
+### Sonic TestnetでのChainlink Aggregator使用手順
+
+本プロトコルはChainlink価格フィードと完全互換です。一度設定すれば、手動更新不要で常に最新価格を自動取得できます。
+
+#### 新規デプロイ時（推奨）
+
+1. **Chainlinkアドレスを事前設定**
+```bash
+# .envファイルを編集
+nano .env
+
+# Sonic testnetのChainlink Aggregatorアドレスを設定
+PRICE_FEED_ADDRESS=0x[Chainlink_Aggregator_Address]
+```
+
+2. **Chainlink対応デプロイ実行**
+```bash
+# Chainlinkを使用したデプロイ（Mockフィードは作成されません）
+forge script script/DeployAndSave.s.sol:DeployAndSaveScript \
+  --rpc-url $RPC_URL \
+  --broadcast -vvvv
+```
+
+#### 既存デプロイの移行手順
+
+既存のCollateralAdapterでMockフィードを使っている場合、Chainlinkに切り替え可能です：
+
+1. **移行用環境設定**
+```bash
+# .envファイルに追加設定
+PRIVATE_KEY=0x...                    # CollateralAdapterのowner秘密鍵
+RPC_URL=https://rpc.testnet.soniclabs.com
+COLLATERAL_ADAPTER_ADDRESS=0x...     # 既存のアダプターアドレス
+PRICE_FEED_ADDRESS=0x...             # Chainlink Aggregatorアドレス
+```
+
+2. **Chainlink価格フィードに切り替え**
+```bash
+# 既存アダプターのフィードをChainlinkに変更
+forge script script/SetPriceFeed.s.sol:SetPriceFeedScript \
+  --rpc-url $RPC_URL \
+  --broadcast -vvvv
+```
+
+#### 設定完了後の動作
+
+✅ **自動価格更新**: Chainlinkがオンチェーンで価格を更新  
+✅ **手動更新不要**: 差し替えやsetPrice呼び出しが不要  
+✅ **鮮度チェック**: 1時間以内のデータのみ受け入れ（`STALENESS_THRESHOLD`）  
+✅ **高い信頼性**: Chainlinkの分散型オラクルネットワークを活用  
+
+#### 利用可能なChainlinkフィード
+
+Sonic testnetで利用可能なChainlink Aggregatorの例：
+- SOL/USD: `0x[address]` 
+- ETH/USD: `0x[address]`
+- BTC/USD: `0x[address]`
+
+※具体的なアドレスはSonic公式ドキュメントまたはChainlink公式サイトで確認してください
+
+### 価格フィードが stale（古い）で UI の Total Collateral が $0.00 になる（従来のMock方式）
+
 **原因**: `CollateralAdapter.getSPrice()` は更新時刻が1時間以上前だと `"Price data is stale"` で revert します。
 
-**再デプロイは不要**。既存の `CollateralAdapter` に対してモックの価格フィードを新規デプロイし、`setPriceFeed` で差し替えれば解消します。
+**対処法1: Chainlinkへ移行（推奨）**
+上記のChainlink設定手順に従ってChainlink Aggregatorに移行してください。
+
+**対処法2: Mockフィードの継続使用**
+再デプロイは不要。既存の `CollateralAdapter` に対してモックの価格フィードを新規デプロイし、`setPriceFeed` で差し替えれば解消します。
 
 1) 事前準備（.env）
 ```bash
@@ -204,18 +271,11 @@ forge script script/UpdatePriceFeed.s.sol:UpdatePriceFeedScript \
   --rpc-url $RPC_URL \
   --broadcast -vvvv
 ```
-実行ログに `New MockPriceFeed deployed at: 0x...` が出力され、`CollateralAdapter.setPriceFeed` が呼ばれます。
 
 3) 価格の更新（stale を避けるために定期的に実行）
 - 価格を更新（例: $2100、Chainlink 互換で 8 桁）
 ```bash
 cast send <NEW_FEED_ADDRESS> 'setPrice(int256)' 2100e8 \
-  --private-key $PRIVATE_KEY --rpc-url $RPC_URL
-```
-
-- 価格は据え置きでタイムスタンプだけ更新
-```bash
-cast send <NEW_FEED_ADDRESS> 'setUpdatedAt(uint256)' $(date +%s) \
   --private-key $PRIVATE_KEY --rpc-url $RPC_URL
 ```
 

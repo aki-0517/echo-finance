@@ -17,11 +17,11 @@ contract DeployAndSaveScript is Script {
         console.log("Deploying with account:", deployer);
         console.log("Account balance:", deployer.balance);
         
+        // Load Chainlink price feed address from .env
+        address priceFeedAddress = vm.envAddress("PRICE_FEED_ADDRESS");
+        require(priceFeedAddress != address(0), "PRICE_FEED_ADDRESS not set in .env");
+        
         vm.startBroadcast(deployerPrivateKey);
-
-        // Deploy mock price feed (for testnet only)
-        MockPriceFeed priceFeed = new MockPriceFeed(2000e8, 8); // $2000 with 8 decimals
-        console.log("MockPriceFeed deployed at:", address(priceFeed));
 
         // Deploy mock tokens (for testnet only)
         MockSToken sToken = new MockSToken("Sonic", "S", 18);
@@ -29,9 +29,9 @@ contract DeployAndSaveScript is Script {
         console.log("MockSToken deployed at:", address(sToken));
         console.log("MockStSToken deployed at:", address(stSToken));
 
-        // Deploy main contracts
+        // Deploy main contracts using Chainlink price feed
         CollateralAdapter collateralAdapter = new CollateralAdapter(
-            address(priceFeed),
+            priceFeedAddress,
             address(sToken),
             address(stSToken)
         );
@@ -61,7 +61,7 @@ contract DeployAndSaveScript is Script {
 
         // Write deployment addresses to files
         _writeContractAddresses(
-            address(priceFeed),
+            priceFeedAddress,
             address(sToken),
             address(stSToken),
             address(collateralAdapter),
@@ -72,7 +72,7 @@ contract DeployAndSaveScript is Script {
         console.log("\n=== DEPLOYMENT SUMMARY ===");
         console.log("Network: Sonic Testnet");
         console.log("Deployer:", deployer);
-        console.log("MockPriceFeed:", address(priceFeed));
+        console.log("Price Feed (Chainlink):", priceFeedAddress);
         console.log("MockSToken:", address(sToken));
         console.log("MockStSToken:", address(stSToken));
         console.log("CollateralAdapter:", address(collateralAdapter));
