@@ -18,9 +18,12 @@ function App() {
               <header className="bg-white/5 backdrop-blur supports-[backdrop-filter]:bg-white/5 border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                   <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent grad-orange">
-                      Echo Finance <span className="text-brand-highlight">v0.1.0</span>
-                    </h1>
+                    <div className="flex items-center gap-3">
+                      <img src="/logo.png" alt="Echo Finance" className="w-8 h-8" />
+                      <h1 className="text-2xl font-bold bg-clip-text text-transparent grad-orange">
+                        Echo <span className="text-brand-highlight">v0.1.0</span>
+                      </h1>
+                    </div>
                     <ConnectButton />
                   </div>
                 </div>

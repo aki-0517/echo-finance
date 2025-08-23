@@ -30,6 +30,10 @@ export function useRecentActivity(): RecentActivityData {
 
   // Helper function to get pending activities from localStorage
   const getPendingActivities = (): ActivityItem[] => {
+    // Temporarily disabled to clear old test data
+    return []
+    
+    /* Original implementation - uncomment when needed:
     try {
       const stored = localStorage.getItem(ACTIVITY_STORAGE_KEY)
       if (!stored) return []
@@ -40,6 +44,7 @@ export function useRecentActivity(): RecentActivityData {
     } catch {
       return []
     }
+    */
   }
 
   // Helper function to parse events into ActivityItems
@@ -52,8 +57,8 @@ export function useRecentActivity(): RecentActivityData {
       // Create unique ID from tx hash and log index
       const id = `${txHash}-${log.logIndex}`
       
-      // Estimate timestamp (rough approximation - in production you might want to fetch actual block timestamp)
-      const timestamp = new Date(Date.now() - (Date.now() % 1000) - Math.random() * 3600000)
+      // Use current timestamp for events - this should ideally be the actual block timestamp
+      const timestamp = new Date()
       
       switch (eventName) {
         case 'CollateralDeposited':
