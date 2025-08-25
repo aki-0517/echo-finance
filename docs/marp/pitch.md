@@ -19,7 +19,7 @@ style: |
   }
   
   h1 {
-    font-size: 36px;
+    font-size: 56px;
     font-weight: 500;
     color: #FFFFFF;
     margin-bottom: 0.5em;
@@ -27,14 +27,14 @@ style: |
   }
   
   h2 {
-    font-size: 28px;
+    font-size: 48px;
     font-weight: 500;
     color: #FBC67E;
     margin-bottom: 0.8em;
   }
   
   h3 {
-    font-size: 22px;
+    font-size: 32px;
     font-weight: 500;
     color: #FFFFFF;
     margin-bottom: 0.5em;
@@ -76,8 +76,30 @@ style: |
 
 <!-- _class: title -->
 
-# Echo Finance
-**Collateralized Stablecoin Protocol on Sonic**
+<style scoped>
+.title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+}
+.title-text {
+  text-align: left;
+}
+.logo {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+</style>
+
+<div class="title-container">
+  <div class="title-text">
+    <h1>Echo Finance</h1>
+    <p><strong>Collateralized Stablecoin Protocol on Sonic</strong></p>
+  </div>
+  <img src="../../web/public/logo.png" alt="Echo Finance Logo" class="logo">
+</div>
 
 ---
 
