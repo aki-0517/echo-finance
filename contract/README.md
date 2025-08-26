@@ -1,284 +1,284 @@
 # Echo Finance MVP - Smart Contracts
 
-Sonic チェーン上で動作する担保型ステーブルコイン（eSUSD）発行プロトコルのスマートコントラクト実装。
+Smart contract implementation of a collateralized stablecoin (eSUSD) issuance protocol operating on the Sonic chain.
 
-## 🏗️ コントラクト構成
+## 🏗️ Contract Architecture
 
-- **VaultManager.sol**: 担保管理・ミント・バーン・清算の中核機能
-- **CollateralAdapter.sol**: S/stS価格オラクル統合とexchange rate処理  
-- **Stablecoin.sol**: eSUSD ERC20トークン実装
-- **Test contracts**: 包括的なテストスイート
+- **VaultManager.sol**: Core functionality for collateral management, minting, burning, liquidations
+- **CollateralAdapter.sol**: S/stS price oracle integration and exchange rate processing  
+- **Stablecoin.sol**: eSUSD ERC20 token implementation
+- **Test contracts**: Comprehensive test suite
 
-## 🚀 Sonic Testnet デプロイ手順
+## 🚀 Sonic Testnet Deployment Guide
 
-### 1. 環境設定
+### 1. Environment Setup
 
 ```bash
-# 環境変数ファイルをコピー
+# Copy environment variable file
 cp .env.example .env
 
-# .envファイルを編集
+# Edit .env file
 nano .env
 ```
 
-`.env`ファイルに以下を設定:
+Configure the following in `.env` file:
 ```bash
-# 必須: デプロイ用秘密鍵（0x付きの64桁16進数）
+# Required: Private key for deployment (64-digit hex with 0x prefix)
 PRIVATE_KEY=0xyour_private_key_here
 
 # Sonic Testnet RPC URL
 RPC_URL=https://rpc.testnet.soniclabs.com
 
-# オプション: Etherscan API Key（コントラクト検証用）
+# Optional: Etherscan API Key (for contract verification)
 ETHERSCAN_API_KEY=your_etherscan_api_key_here
 ```
 
-### 2. 依存関係インストール
+### 2. Install Dependencies
 
 ```bash
-# OpenZeppelin contractsインストール
+# Install OpenZeppelin contracts
 forge install OpenZeppelin/openzeppelin-contracts
 ```
 
-### 3. コンパイル & テスト
+### 3. Compile & Test
 
 ```bash
-# コントラクトコンパイル
+# Compile contracts
 forge build
 
-# テスト実行（全12テストが通過する必要があります）
+# Run tests (all 12 tests must pass)
 forge test
 
-# ガス使用量チェック
+# Check gas usage
 forge snapshot
 
-# コードフォーマット
+# Format code
 forge fmt
 ```
 
-### 4. Sonic Testnetにデプロイ
+### 4. Deploy to Sonic Testnet
 
 ```bash
-# シェルに環境変数を読み込む（必要な場合）
+# Load environment variables to shell (if needed)
 set -a; source .env; set +a
 
-# デプロイ実行（アドレス自動保存・検証なし）
+# Execute deployment (auto-save addresses, no verification)
 forge script script/DeployAndSave.s.sol:DeployAndSaveScript \
   --rpc-url $RPC_URL \
   --broadcast
 
-# または環境変数を直接指定（検証なし）
+# Or specify environment variables directly (no verification)
 forge script script/DeployAndSave.s.sol:DeployAndSaveScript \
   --rpc-url https://rpc.testnet.soniclabs.com \
   --broadcast
 
-# ドライラン（フォークでシミュレーション、ブロードキャストなし）
+# Dry run (fork simulation, no broadcast)
 forge script script/DeployAndSave.s.sol:DeployAndSaveScript \
   --fork-url https://rpc.testnet.soniclabs.com
 ```
 
-### 5. デプロイ結果確認
+### 5. Verify Deployment Results
 
-デプロイ成功後、以下が自動実行されます:
+After successful deployment, the following occurs automatically:
 
-1. **コントラクトアドレス保存**: `.env`ファイルにアドレスが自動記録
-2. **フロントエンド設定更新**: `../web/.env`ファイルも自動更新
-3. **テストトークンミント**: デプロイヤーアドレスに1000 S、1000 stSがミント
+1. **Contract Address Saving**: Addresses are automatically recorded in `.env` file
+2. **Frontend Configuration Update**: `../web/.env` file is also automatically updated
+3. **Test Token Minting**: 1000 S and 1000 stS tokens are minted to deployer address
 
 ```bash
-# デプロイ結果確認
+# Check deployment results
 cat .env
 
-# フロントエンド用設定確認
+# Check frontend configuration
 cat ../web/.env
 ```
 
-## 🌐 Sonic Testnet情報
+## 🌐 Sonic Testnet Information
 
 - **Chain ID**: 14601
 - **RPC URL**: `https://rpc.testnet.soniclabs.com`
 - **Explorer**: `https://explorer.sonic.test`
-- **Faucet**: Sonic公式Discordで入手可能
+- **Faucet**: Available through official Sonic Discord
 
-## 📋 デプロイされるコントラクト
+## 📋 Deployed Contracts
 
-1. **MockPriceFeed**: テスト用価格オラクル（S = $2000）
-2. **MockSToken**: テスト用Sトークン
-3. **MockStSToken**: テスト用stSトークン（exchange rate = 1.1）
-4. **CollateralAdapter**: 価格取得とexchange rate処理
-5. **Stablecoin (eSUSD)**: ステーブルコインERC20
-6. **VaultManager**: メインプロトコルロジック
+1. **MockPriceFeed**: Test price oracle (S = $2000)
+2. **MockSToken**: Test S token
+3. **MockStSToken**: Test stS token (exchange rate = 1.1)
+4. **CollateralAdapter**: Price fetching and exchange rate processing
+5. **Stablecoin (eSUSD)**: Stablecoin ERC20
+6. **VaultManager**: Main protocol logic
 
-## 🧪 プロトコルパラメータ
+## 🧪 Protocol Parameters
 
-- **MCR (最小担保比率)**: 150%
-- **最大LTV**: 66.67%
-- **清算割引**: 5%
-- **S価格**: $2,000（テスト用固定値）
+- **MCR (Minimum Collateral Ratio)**: 150%
+- **Maximum LTV**: 66.67%
+- **Liquidation Discount**: 5%
+- **S Price**: $2,000 (fixed test value)
 - **stS exchange rate**: 1.1 S
 
-## 🔍 コントラクト検証
+## 🔍 Contract Verification
 
-Etherscan API Keyが設定されている場合、デプロイ時に自動でコントラクトが検証されます。
+When Etherscan API Key is configured, contracts are automatically verified during deployment.
 
-手動検証の場合:
+For manual verification:
 ```bash
 forge verify-contract <CONTRACT_ADDRESS> <CONTRACT_NAME> \
   --etherscan-api-key $ETHERSCAN_API_KEY \
   --rpc-url $RPC_URL
 ```
 
-## 🛠️ 開発用コマンド
+## 🛠️ Development Commands
 
 ```bash
-# ローカルテストネット起動
+# Start local testnet
 anvil
 
-# 特定テスト実行
+# Run specific test
 forge test --match-test testLiquidation
 
-# 詳細ログ付きテスト
+# Test with detailed logs
 forge test -vv
 
-# ガス最適化レポート
+# Gas optimization report
 forge test --gas-report
 
-# カバレッジレポート
+# Coverage report
 forge coverage
 ```
 
-## ⚠️ 注意事項
+## ⚠️ Important Notes
 
-1. **秘密鍵管理**: `.env`ファイルは絶対にコミットしないでください
-2. **テスト専用**: このデプロイスクリプトはテスト用のMockコントラクトを使用します
-3. **プロダクション利用**: 本番環境では実際のオラクルとトークンアドレスを使用してください
-4. **ガス料金**: Sonic TestnetのガストークンはDiscordで取得可能です
+1. **Private Key Management**: Never commit the `.env` file to version control
+2. **Test Only**: This deployment script uses Mock contracts for testing
+3. **Production Use**: Use actual oracle and token addresses in production environment
+4. **Gas Fees**: Sonic Testnet gas tokens are available through Discord
 
-## 🔗 関連リンク
+## 🔗 Related Links
 
 - [Foundry Documentation](https://book.getfoundry.sh/)
 - [Sonic Labs Documentation](https://docs.soniclabs.com/)
 - [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
 
-## 📝 トラブルシューティング
+## 📝 Troubleshooting
 
-### よくある問題と解決方法
+### Common Issues and Solutions
 
-**Q: デプロイ時に "insufficient funds" エラー**
-A: Sonic TestnetのガストークンをDiscordで取得してください
+**Q: "insufficient funds" error during deployment**
+A: Get Sonic Testnet gas tokens through Discord
 
-**Q: 検証エラーが発生**  
-A: Etherscan API Keyが正しく設定されているか確認してください
+**Q: Verification errors occur**  
+A: Check if Etherscan API Key is correctly configured
 
-**Q: テストが失敗する**
-A: OpenZeppelin contractsがインストールされているか確認:
+**Q: Tests fail**
+A: Check if OpenZeppelin contracts are installed:
 ```bash
 forge install OpenZeppelin/openzeppelin-contracts --no-commit
 ```
 
-**Q: RPC接続エラー**
-A: `.env`ファイルのRPC_URLが正しく設定されているか確認してください
+**Q: RPC connection error**
+A: Check if RPC_URL in `.env` file is correctly configured
 
-**Q: "a value is required for '--fork-url <URL>'" と表示される**
-A: デプロイ時は `--rpc-url` を使用してください。`--fork-url` はドライラン（シミュレーション）用です。環境に `FOUNDRY_FORK_URL` が残っている場合は以下で解除してください。
+**Q: "a value is required for '--fork-url <URL>'" message appears**
+A: Use `--rpc-url` for deployment. `--fork-url` is for dry runs (simulation). If `FOUNDRY_FORK_URL` remains in environment, unset it:
 ```bash
 unset FOUNDRY_FORK_URL
 ```
-また、スクリプト名の末尾に `:DeployAndSaveScript` を付けてターゲットを明示することを推奨します（READMEのデプロイ手順参照）。
+Also, it's recommended to append `:DeployAndSaveScript` to the script name to specify the target explicitly (refer to deployment instructions in README).
 
-## 🔗 Chainlink価格フィード自動反映設定
+## 🔗 Chainlink Price Feed Auto-Update Configuration
 
-### Sonic TestnetでのChainlink Aggregator使用手順
+### Using Chainlink Aggregator on Sonic Testnet
 
-本プロトコルはChainlink価格フィードと完全互換です。一度設定すれば、手動更新不要で常に最新価格を自動取得できます。
+This protocol is fully compatible with Chainlink price feeds. Once configured, it automatically fetches the latest prices without manual updates.
 
-#### 新規デプロイ時（推奨）
+#### For New Deployments (Recommended)
 
-1. **Chainlinkアドレスを事前設定**
+1. **Pre-configure Chainlink Address**
 ```bash
-# .envファイルを編集
+# Edit .env file
 nano .env
 
-# Sonic testnetのChainlink Aggregatorアドレスを設定
+# Set Chainlink Aggregator address for Sonic testnet
 PRICE_FEED_ADDRESS=0x[Chainlink_Aggregator_Address]
 ```
 
-2. **Chainlink対応デプロイ実行**
+2. **Execute Chainlink-Compatible Deployment**
 ```bash
-# Chainlinkを使用したデプロイ（Mockフィードは作成されません）
+# Deploy using Chainlink (Mock feeds will not be created)
 forge script script/DeployAndSave.s.sol:DeployAndSaveScript \
   --rpc-url $RPC_URL \
   --broadcast -vvvv
 ```
 
-#### 既存デプロイの移行手順
+#### Migration Process for Existing Deployments
 
-既存のCollateralAdapterでMockフィードを使っている場合、Chainlinkに切り替え可能です：
+If existing CollateralAdapter is using Mock feeds, it can be switched to Chainlink:
 
-1. **移行用環境設定**
+1. **Migration Environment Configuration**
 ```bash
-# .envファイルに追加設定
-PRIVATE_KEY=0x...                    # CollateralAdapterのowner秘密鍵
+# Add configuration to .env file
+PRIVATE_KEY=0x...                    # CollateralAdapter owner private key
 RPC_URL=https://rpc.testnet.soniclabs.com
-COLLATERAL_ADAPTER_ADDRESS=0x...     # 既存のアダプターアドレス
-PRICE_FEED_ADDRESS=0x...             # Chainlink Aggregatorアドレス
+COLLATERAL_ADAPTER_ADDRESS=0x...     # Existing adapter address
+PRICE_FEED_ADDRESS=0x...             # Chainlink Aggregator address
 ```
 
-2. **Chainlink価格フィードに切り替え**
+2. **Switch to Chainlink Price Feed**
 ```bash
-# 既存アダプターのフィードをChainlinkに変更
+# Change existing adapter feed to Chainlink
 forge script script/SetPriceFeed.s.sol:SetPriceFeedScript \
   --rpc-url $RPC_URL \
   --broadcast -vvvv
 ```
 
-#### 設定完了後の動作
+#### Behavior After Configuration
 
-✅ **自動価格更新**: Chainlinkがオンチェーンで価格を更新  
-✅ **手動更新不要**: 差し替えやsetPrice呼び出しが不要  
-✅ **鮮度チェック**: 1時間以内のデータのみ受け入れ（`STALENESS_THRESHOLD`）  
-✅ **高い信頼性**: Chainlinkの分散型オラクルネットワークを活用  
+✅ **Automatic Price Updates**: Chainlink updates prices on-chain  
+✅ **No Manual Updates Required**: No need for replacement or setPrice calls  
+✅ **Freshness Check**: Only accepts data within 1 hour (`STALENESS_THRESHOLD`)  
+✅ **High Reliability**: Utilizes Chainlink's decentralized oracle network  
 
-#### 利用可能なChainlinkフィード
+#### Available Chainlink Feeds
 
-Sonic testnetで利用可能なChainlink Aggregatorの例：
+Examples of Chainlink Aggregators available on Sonic testnet:
 - SOL/USD: `0x[address]` 
 - ETH/USD: `0x[address]`
 - BTC/USD: `0x[address]`
 
-※具体的なアドレスはSonic公式ドキュメントまたはChainlink公式サイトで確認してください
+※Check Sonic official documentation or Chainlink official site for specific addresses
 
-### 価格フィードが stale（古い）で UI の Total Collateral が $0.00 になる（従来のMock方式）
+### Price Feed is Stale and UI Total Collateral Shows $0.00 (Traditional Mock Method)
 
-**原因**: `CollateralAdapter.getSPrice()` は更新時刻が1時間以上前だと `"Price data is stale"` で revert します。
+**Cause**: `CollateralAdapter.getSPrice()` reverts with `"Price data is stale"` when update time is more than 1 hour ago.
 
-**対処法1: Chainlinkへ移行（推奨）**
-上記のChainlink設定手順に従ってChainlink Aggregatorに移行してください。
+**Solution 1: Migrate to Chainlink (Recommended)**
+Follow the Chainlink configuration steps above to migrate to Chainlink Aggregator.
 
-**対処法2: Mockフィードの継続使用**
-再デプロイは不要。既存の `CollateralAdapter` に対してモックの価格フィードを新規デプロイし、`setPriceFeed` で差し替えれば解消します。
+**Solution 2: Continue Using Mock Feed**
+No redeployment needed. Deploy a new mock price feed for existing `CollateralAdapter` and replace it with `setPriceFeed` to resolve the issue.
 
-1) 事前準備（.env）
+1) Preparation (.env)
 ```bash
-PRIVATE_KEY=0x...                  # CollateralAdapter の owner の鍵
+PRIVATE_KEY=0x...                  # CollateralAdapter owner key
 RPC_URL=https://rpc.testnet.soniclabs.com
-COLLATERAL_ADAPTER_ADDRESS=0x...   # DeployAndSave 実行時に .env へ保存済み
+COLLATERAL_ADAPTER_ADDRESS=0x...   # Saved to .env when DeployAndSave executed
 ```
 
-2) 価格フィードの差し替え（再デプロイ不要）
+2) Replace Price Feed (No Redeployment Required)
 ```bash
 forge script script/UpdatePriceFeed.s.sol:UpdatePriceFeedScript \
   --rpc-url $RPC_URL \
   --broadcast -vvvv
 ```
 
-3) 価格の更新（stale を避けるために定期的に実行）
-- 価格を更新（例: $2100、Chainlink 互換で 8 桁）
+3) Update Price (Run Periodically to Avoid Staleness)
+- Update price (e.g., $2100, 8 decimals for Chainlink compatibility)
 ```bash
 cast send <NEW_FEED_ADDRESS> 'setPrice(int256)' 2100e8 \
   --private-key $PRIVATE_KEY --rpc-url $RPC_URL
 ```
 
-補足
-- `setPriceFeed` は `onlyOwner`。`CollateralAdapter` のオーナー鍵で実行してください。
-- フロント側はアダプターのアドレスが変わらないため、差し替え後すぐに `Total Collateral` が正しく表示されます。
+Notes
+- `setPriceFeed` is `onlyOwner`. Execute with `CollateralAdapter` owner key.
+- Frontend adapter address doesn't change, so `Total Collateral` displays correctly immediately after replacement.

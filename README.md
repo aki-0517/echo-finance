@@ -1,24 +1,24 @@
 # Echo Finance (on Sonic)
 
-Sonic チェーン上で動作する担保型ステーブルコイン（eSUSD）発行プロトコルのMVP実装。
+MVP implementation of a collateralized stablecoin (eSUSD) issuance protocol operating on the Sonic chain.
 
-## 🚀 クイックスタート
+## 🚀 Quick Start
 
-### 1. 環境設定
+### 1. Environment Setup
 
 ```bash
-# 環境変数ファイルをコピー
+# Copy environment variable files
 cp contract/.env.example contract/.env
 cp web/.env.example web/.env
 
-# contract/.env を編集
+# Edit contract/.env
 PRIVATE_KEY=your_private_key_here
 
-# web/.env を編集（WalletConnect Project IDを取得）
+# Edit web/.env (Get WalletConnect Project ID)
 VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
 ```
 
-### 2. コントラクトのデプロイ
+### 2. Contract Deployment
 
 ```bash
 cd contract/
@@ -27,7 +27,7 @@ forge test
 forge script script/DeployAndSave.s.sol --rpc-url https://rpc.sonic.test --broadcast
 ```
 
-### 3. フロントエンドの起動
+### 3. Frontend Launch
 
 ```bash
 cd web/
@@ -35,73 +35,73 @@ npm install
 npm run dev
 ```
 
-## 📁 プロジェクト構成
+## 📁 Project Structure
 
 ```
 lybra/
-├── contract/           # Foundryベースのスマートコントラクト
-│   ├── src/           # コントラクトソースコード
-│   ├── test/          # テストファイル
-│   └── script/        # デプロイスクリプト
-├── web/               # React + TypeScript フロントエンド
+├── contract/           # Foundry-based smart contracts
+│   ├── src/           # Contract source code
+│   ├── test/          # Test files
+│   └── script/        # Deployment scripts
+├── web/               # React + TypeScript frontend
 │   └── src/
-│       ├── components/    # UIコンポーネント
-│       ├── store/        # Zustand状態管理
-│       └── contracts/    # コントラクト設定
-└── docs/              # プロジェクト仕様書（日本語）
+│       ├── components/    # UI components
+│       ├── store/        # Zustand state management
+│       └── contracts/    # Contract configuration
+└── docs/              # Project specifications (Japanese)
 ```
 
-## 🔧 主要機能
+## 🔧 Key Features
 
-### スマートコントラクト
-- **VaultManager**: 担保管理・ミント・バーン・清算
-- **CollateralAdapter**: S/stS価格オラクル統合
-- **Stablecoin**: eSUSD ERC20トークン
+### Smart Contracts
+- **VaultManager**: Collateral management, minting, burning, liquidations
+- **CollateralAdapter**: S/stS price oracle integration
+- **Stablecoin**: eSUSD ERC20 token
 
-### フロントエンド
-- **ウォレット接続**: RainbowKit統合
-- **担保預入**: S/stS トークン対応
-- **ステーブル発行**: eSUSD ミント機能
-- **清算機能**: 不健全なVaultの清算
-- **リアルタイム監視**: Health Factor表示
+### Frontend
+- **Wallet Connection**: RainbowKit integration
+- **Collateral Deposit**: S/stS token support
+- **Stablecoin Issuance**: eSUSD minting functionality
+- **Liquidation Features**: Liquidation of unhealthy vaults
+- **Real-time Monitoring**: Health Factor display
 
-## 📊 プロトコル設定
+## 📊 Protocol Configuration
 
-- **MCR (最小担保比率)**: 150%
-- **最大LTV**: 66.67%
-- **清算割引**: 5%
-- **対応担保**: S トークン、stS トークン
-- **stS交換レート**: ~1.1 S（ステーキング報酬分）
+- **MCR (Minimum Collateral Ratio)**: 150%
+- **Maximum LTV**: 66.67%
+- **Liquidation Discount**: 5%
+- **Supported Collateral**: S tokens, stS tokens
+- **stS Exchange Rate**: ~1.1 S (staking rewards included)
 
-## 🧪 テスト
+## 🧪 Testing
 
 ```bash
-# コントラクトテスト
+# Contract testing
 cd contract/
 forge test
 
-# フロントエンドテスト（今後追加予定）
+# Frontend testing (to be added in future)
 cd web/
 npm test
 ```
 
-## 🚢 デプロイメント
+## 🚢 Deployment
 
-デプロイスクリプトは自動的に：
-1. Mock価格フィード、SトークンとstSトークンをデプロイ
-2. CollateralAdapter、Stablecoin、VaultManagerをデプロイ
-3. コントラクト間の接続を設定
-4. テスト用トークンをデプロイヤーにミント
-5. アドレスを`.env`ファイルに自動保存
+The deployment script automatically:
+1. Deploys Mock price feeds, S tokens and stS tokens
+2. Deploys CollateralAdapter, Stablecoin, VaultManager
+3. Sets up connections between contracts
+4. Mints test tokens to the deployer
+5. Automatically saves addresses to `.env` file
 
-## 🌐 ネットワーク情報
+## 🌐 Network Information
 
 - **Sonic Testnet**
   - RPC: `https://rpc.testnet.soniclabs.com`
   - Explorer: `https://explorer.sonic.test`
   - Chain ID: `14601`
-  - Faucet: Sonic公式Discordで入手可能
+  - Faucet: Available through official Sonic Discord
 
-## 📝 ライセンス
+## 📝 License
 
-UNLICENSED（開発用）
+UNLICENSED (for development)
