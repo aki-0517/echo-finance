@@ -14,7 +14,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Echo Finance" className="w-8 h-8" />
               <h1 className="text-2xl font-bold bg-clip-text text-transparent grad-orange">
-                Echo Finance
+                Echo
               </h1>
             </div>
             <nav className="hidden md:flex items-center gap-8">
@@ -55,12 +55,8 @@ export default function LandingPage() {
               </div>
               
               <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                Echo Finance
+                Yield‑backed stability on Sonic
               </h1>
-              
-              <p className="text-xl lg:text-2xl text-brand-highlight mb-6">
-                Collateralized Stablecoin on Sonic
-              </p>
               
               <p className="text-lg text-brand-gray mb-8 max-w-lg mx-auto lg:mx-0">
                 eSUSD — S / stS collateral, interest-free, leveraging stS yield
