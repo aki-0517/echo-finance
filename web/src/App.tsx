@@ -17,9 +17,8 @@ function App() {
         <RainbowKitProvider>
           <Router>
             <Routes>
-              <Route path="/lp" element={<LandingPage />} />
               <Route path="/app" element={<AppLayout />} />
-              <Route path="/" element={<AppLayout />} />
+              <Route path="/" element={<LandingPage />} />
             </Routes>
           </Router>
         </RainbowKitProvider>
