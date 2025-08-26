@@ -161,7 +161,7 @@ export function useVaultActions() {
     if (isSuccess && (currentAction.type === 'deposit' || currentAction.type === 'burn' || currentAction.type === 'mint' || currentAction.type === 'withdraw')) {
       setCurrentAction({ type: null })
     }
-  }, [isSuccess, currentAction, writeContract])
+  }, [isSuccess, currentAction, writeContract, address])
 
   const depositCollateral = async (amount: string, isStS: boolean) => {
     const tokenAddress = isStS ? contractAddresses.stSToken : contractAddresses.sToken

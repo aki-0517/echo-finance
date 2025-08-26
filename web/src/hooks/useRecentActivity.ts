@@ -19,7 +19,7 @@ interface RecentActivityData {
   error: string | null
 }
 
-const ACTIVITY_STORAGE_KEY = 'lybra_pending_activities'
+// const ACTIVITY_STORAGE_KEY = 'lybra_pending_activities' // Unused for now
 
 export function useRecentActivity(): RecentActivityData {
   const { address, isConnected } = useAccount()
@@ -48,11 +48,11 @@ export function useRecentActivity(): RecentActivityData {
   }
 
   // Helper function to parse events into ActivityItems
-  const parseEventToActivity = (log: any): ActivityItem | null => {
+  const parseEventToActivity = (log: Record<string, unknown>): ActivityItem | null => {
     try {
-      const eventName = log.eventName
-      const args = log.args
-      const txHash = log.transactionHash
+      const eventName = log.eventName as string
+      const args = log.args as Record<string, unknown>
+      const txHash = log.transactionHash as string
       
       // Create unique ID from tx hash and log index
       const id = `${txHash}-${log.logIndex}`
@@ -65,8 +65,8 @@ export function useRecentActivity(): RecentActivityData {
           return {
             id,
             type: 'deposit',
-            amount: formatUnits(args.amount, 18),
-            token: args.isStS ? 'stS' : 'S',
+            amount: formatUnits(args.amount as bigint, 18),
+            token: args.isStS as boolean ? 'stS' : 'S',
             timestamp,
             txHash
           }
@@ -74,8 +74,8 @@ export function useRecentActivity(): RecentActivityData {
           return {
             id,
             type: 'withdraw',
-            amount: formatUnits(args.amount, 18),
-            token: args.isStS ? 'stS' : 'S',
+            amount: formatUnits(args.amount as bigint, 18),
+            token: args.isStS as boolean ? 'stS' : 'S',
             timestamp,
             txHash
           }
@@ -83,7 +83,7 @@ export function useRecentActivity(): RecentActivityData {
           return {
             id,
             type: 'mint',
-            amount: formatUnits(args.amount, 18),
+            amount: formatUnits(args.amount as bigint, 18),
             token: 'eSUSD',
             timestamp,
             txHash
@@ -92,7 +92,7 @@ export function useRecentActivity(): RecentActivityData {
           return {
             id,
             type: 'repay',
-            amount: formatUnits(args.amount, 18),
+            amount: formatUnits(args.amount as bigint, 18),
             token: 'eSUSD',
             timestamp,
             txHash
@@ -101,7 +101,7 @@ export function useRecentActivity(): RecentActivityData {
           return {
             id,
             type: 'liquidation',
-            amount: formatUnits(args.collateralSeized, 18),
+            amount: formatUnits(args.collateralSeized as bigint, 18),
             token: 'Collateral',
             timestamp,
             txHash
