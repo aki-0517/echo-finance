@@ -94,6 +94,14 @@ The deployment script automatically:
 4. Mints test tokens to the deployer
 5. Automatically saves addresses to `.env` file
 
+## 📋 Contract Addresses (Sonic Testnet)
+
+- **MockSToken (S)**: `0x8ffa6dcd633e3de633bb2d12b528ae82df189f2c`
+- **MockStSToken (stS)**: `0x279ec875d8b0cc18783b2451121b18c8ce9626f6`
+- **CollateralAdapter**: `0xc3a9d70a76df1459ac259d460cd6781e86620a45`
+- **Stablecoin (eSUSD)**: `0xd519048928cfd8d2588e352d0cb7e095b25be6a6`
+- **VaultManager**: `0x6136a19a0f2dec456777eef274fba34437b7b689`
+
 ## 🌐 Network Information
 
 - **Sonic Testnet**
